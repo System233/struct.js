@@ -1,14 +1,22 @@
-# struct.js
+# Struct.js
 
-C风格二进制读写器（<font color="#dd0000">实验性</font>）
+🧀C风格二进制数据读写器（实验性🚩）
 
-## 示例
+## 🧡支持的类型
+
+✔支持的基本类型:`int8`,`uint8`,`int16`,`uint16`,`int32`,`uint32`,`int64`,`uint64`,`float32`,`float64`
+
+❌尚不支持的类型:`string`
+
+## 🚀示例
+
+`npm install https://github.com/System233/struct.js`
 
 [example.ts](test/example.ts)
 
 ```typescript
 
-import { Struct, TypeBase, Field, SizeOf } from "..";
+import { Struct, TypeBase, Field, SizeOf } from "struct";
 
 // 定义结构体
 @Struct
@@ -17,19 +25,25 @@ class SimpleType extends TypeBase{
     // 定义字段
     @Field("int8")
     int8:number;
+
     @Field("int16")
     int16:number;
+
     @Field("int32")
     int32:number;
+
     @Field("int64")
     int64:BigInt;
     
     @Field("uint8")
     uint8:number;
+
     @Field("uint16")
     uint16:number;
+
     @Field("uint32")
     uint32:number;
+
     @Field("uint64")
     uint64:BigInt;
 
@@ -56,7 +70,7 @@ class ComplexType extends TypeBase{
 
 // 继承类型(尚未测试)
 
-// 打印结构体类型
+// 打印类型大小
 console.log("SizeOf(SimpleStruct)=",SizeOf(SimpleType));
 console.log("SizeOf(ComplexType)=",SizeOf(ComplexType));
 
@@ -78,19 +92,15 @@ console.log(buffer)
 
 ```
 
-## 支持的类型
-
-支持的基本类型:`int8`,`uint8`,`int16`,`uint16`,`int32`,`uint32`,`int64`,`uint64`,`float32`,`float64`
-
-尚不支持的类型:`string`
-
-## TODO
+## 📌TODO
 
 - [ ] 基本类型`string`支持
-- [ ] C风格字节对齐
-- [ ] 继承类型
+- [ ] Little/Big-Endian 字节序
+- [ ] Byte-Algined 字节对齐
+- [ ] Extends 继承类型
+- [ ] Union 联合类型
 - [ ] JavaScript API
 
-## LICENSE
+## 🔑LICENSE
 
 MIT Copyright (c) [System233](https://github.com/System233)

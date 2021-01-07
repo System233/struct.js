@@ -1,8 +1,10 @@
 {
     "compilerOptions": {
+        "outDir": "./dist",
         "experimentalDecorators": true,
         "lib": ["ES2020","DOM"],
         "target": "ES2020",
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
+        "module": "commonjs"
     },
 }

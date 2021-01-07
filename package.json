@@ -2,7 +2,8 @@
   "name": "struct",
   "version": "1.0.0",
   "description": "C-style DataView in TypeScript/JavaScript",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "directories": {
     "test": "test"
   },
