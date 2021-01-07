@@ -1,5 +1,5 @@
 {
-  "name": "struct.js",
+  "name": "struct",
   "version": "1.0.0",
   "description": "C-style DataView in TypeScript/JavaScript",
   "main": "index.js",
