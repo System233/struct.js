@@ -1,6 +1,8 @@
 # Struct.js
 
-🧀C风格二进制数据读写器（实验性🚩）
+🧀C风格二进制数据读写器（实验性🚩）  
+
+`npm install https://github.com/System233/struct.js`
 
 ## 🧡支持的类型
 
@@ -9,8 +11,6 @@
 ❌尚不支持的类型:`string`
 
 ## 🚀示例
-
-`npm install https://github.com/System233/struct.js`
 
 [example.ts](test/example.ts)
 
@@ -94,9 +94,9 @@ console.log(buffer)
 
 ## 📌TODO
 
-- [ ] 基本类型`string`支持
+- [ ] `string`类型支持
 - [ ] Little/Big-Endian 字节序
-- [ ] Byte-Algined 字节对齐
+- [ ] Byte-Aligned 字节对齐
 - [ ] Extends 继承类型
 - [ ] Union 联合类型
 - [ ] JavaScript API
