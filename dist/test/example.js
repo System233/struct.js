@@ -10,69 +10,76 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const __1 = require("..");
+const src_1 = require("../src");
 // 定义结构体
-let SimpleType = class SimpleType extends __1.TypeBase {
+let SimpleType = class SimpleType extends src_1.TypeBase {
 };
 __decorate([
-    __1.Field("int8")
+    src_1.Field("int8")
 ], SimpleType.prototype, "int8", void 0);
 __decorate([
-    __1.Field("int16")
-], SimpleType.prototype, "int16", void 0);
-__decorate([
-    __1.Field("int32")
-], SimpleType.prototype, "int32", void 0);
-__decorate([
-    __1.Field("int64")
-], SimpleType.prototype, "int64", void 0);
-__decorate([
-    __1.Field("uint8")
+    src_1.Field("uint8")
 ], SimpleType.prototype, "uint8", void 0);
 __decorate([
-    __1.Field("uint16")
-], SimpleType.prototype, "uint16", void 0);
+    src_1.Field("int64")
+], SimpleType.prototype, "int64", void 0);
 __decorate([
-    __1.Field("uint32")
-], SimpleType.prototype, "uint32", void 0);
-__decorate([
-    __1.Field("uint64")
+    src_1.Field("uint64", { encoding: 'BE' })
 ], SimpleType.prototype, "uint64", void 0);
 __decorate([
-    __1.Field("uint64", { shape: [2, 3, 4] })
+    src_1.Field("string", { shape: [10] })
+], SimpleType.prototype, "str10", void 0);
+__decorate([
+    src_1.Field("string", { shape: [5, 10], encoding: 'gbk' })
+], SimpleType.prototype, "str10s", void 0);
+__decorate([
+    src_1.Field("uint64", { shape: [2, 3, 4] })
 ], SimpleType.prototype, "array64", void 0);
 __decorate([
-    __1.Field("uint64", { shape: [2, 3, 4], native: true })
+    src_1.Field("uint64", { shape: [2, 3, 4], native: true })
 ], SimpleType.prototype, "nativeArray64", void 0);
 SimpleType = __decorate([
-    __1.Struct
+    src_1.Struct
 ], SimpleType);
 // 嵌套类型
-let ComplexType = class ComplexType extends __1.TypeBase {
+let ComplexType = class ComplexType extends src_1.TypeBase {
 };
 __decorate([
-    __1.Field(SimpleType)
+    src_1.Field(SimpleType)
 ], ComplexType.prototype, "s1", void 0);
 __decorate([
-    __1.Field(SimpleType, { shape: [1, 2, 3] })
+    src_1.Field(SimpleType, { shape: [1, 2, 3] })
 ], ComplexType.prototype, "s2", void 0);
 ComplexType = __decorate([
-    __1.Struct
+    src_1.Struct
 ], ComplexType);
 // 继承类型(尚未测试)
+//@Struct
+//class ExtendsType extends ComplexType{}
 // 打印结构体类型
-console.log("SizeOf(SimpleStruct)=", __1.SizeOf(SimpleType));
-console.log("SizeOf(ComplexType)=", __1.SizeOf(ComplexType));
+console.log("SizeOf(SimpleStruct)=", src_1.SizeOf(SimpleType));
+console.log("SizeOf(ComplexType)=", src_1.SizeOf(ComplexType));
 // 实例化结构
-const buffer = new ArrayBuffer(__1.SizeOf(SimpleType));
+const buffer = new ArrayBuffer(src_1.SizeOf(SimpleType));
 const struct = new SimpleType(buffer);
 // 测试赋值
 struct.int8 = 0x80;
-struct.uint8 = 0x80;
+struct.uint8 = 0xF0;
 /*...*/
-struct.int64 = 0x6464646464646464n;
-struct.uint64 = 0xf4f4f4f4f4f4f4f4n;
+struct.str10 = "测试utf8";
+struct.str10s = ["我额", "字符", "test", "emmm", "end"];
+struct.int64 = 0x6465666768696a6bn;
+struct.uint64 = 0xf4f5f6f7f8f9fafbn;
 // 打印结构
+console.log("int8=", struct.int64);
+console.log("uint8=", struct.uint64);
+console.log("str10=", struct.str10);
+console.log("str10s[0]=", struct.str10s[0]);
+console.log("str10s[1]=", struct.str10s[1]);
+console.log("str10s=", [...struct.str10s]);
 console.log("int64=", struct.int64);
 console.log("uint64=", struct.uint64);
 console.log(buffer);
+console.log(src_1.Dump(SimpleType));
+console.log(src_1.Dump(ComplexType));
+//# sourceMappingURL=example.js.map

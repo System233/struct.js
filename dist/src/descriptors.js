@@ -17,7 +17,8 @@ exports.Struct = (constructor) => {
     return class extends constructor {
         constructor(...args) {
             super(...args);
-            return types_1.InitStruct(this);
+            return types_1.CreateStruct(this);
         }
     };
 };
+//# sourceMappingURL=descriptors.js.map

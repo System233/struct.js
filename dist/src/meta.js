@@ -7,5 +7,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetMetaData = exports.GetMetaData = void 0;
 var consts_1 = require("./consts");
 Object.defineProperty(exports, "META", { enumerable: true, get: function () { return consts_1.META; } });
-exports.GetMetaData = (target, meta) => Reflect.get(target, meta);
-exports.SetMetaData = (target, meta, value) => Reflect.set(target, meta, value);
+exports.GetMetaData = (target, meta) => Reflect.get(typeof target == "function" ? target.prototype : target, meta);
+exports.SetMetaData = (target, meta, value) => Reflect.set(typeof target == "function" ? target.prototype : target, meta, value);
+//# sourceMappingURL=meta.js.map

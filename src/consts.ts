@@ -50,28 +50,26 @@ export const NativeTypeConventMap={
 
 // export type NativeTypeMap=typeof NativeTypeClassMap;
 export enum NativeTypeSize{
-    int8=1,
-    uint8=int8,
-    int16=2,
-    uint16=int16,
-    int32=4,
-    uint32=int32,
-    int64=8,
-    uint64=int64,
-    float32=4,
-    float64=8,
+    int8=Int8Array.BYTES_PER_ELEMENT,
+    uint8=Uint8Array.BYTES_PER_ELEMENT,
+    int16=Int16Array.BYTES_PER_ELEMENT,
+    uint16=Uint16Array.BYTES_PER_ELEMENT,
+    int32=Int32Array.BYTES_PER_ELEMENT,
+    uint32=Uint32Array.BYTES_PER_ELEMENT,
+    int64=BigInt64Array.BYTES_PER_ELEMENT,
+    uint64=BigUint64Array.BYTES_PER_ELEMENT,
+    float32=Float32Array.BYTES_PER_ELEMENT,
+    float64=Float64Array.BYTES_PER_ELEMENT,
 }
-export enum NativeTypeNameMap{
-    int8='Int8',
-    uint8='Uint8',
-    int16='Int16',
-    uint16='Uint16',
-    int32='Int32',
-    uint32='Uint32',
-    int64='BigInt64',
-    uint64='BigUint64',
-    float32='Float32',
-    float64='Float64',
-}
+
 export type NativeTypes=keyof NativeTypeMap;
 
+export type Endianness="LE"|"BE";
+export const DefaultEndian:Endianness=(()=>{
+    const testBuf=new ArrayBuffer(2);
+    const u8array=new Uint8Array(testBuf);
+    const u16array=new Uint16Array(testBuf);
+    u16array[0]=0x0102;
+    return (u8array[0]>u8array[1])?"LE":"BE";
+})();
+export const DefaultEncoding="utf-8";

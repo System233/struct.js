@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Field, GetMetaData, META, SizeOf, Struct, TypeBase } from "..";
+import { Field, GetMetaData, META, SizeOf, Struct, TypeBase, CreateStruct } from "../src";
 
 
 @Struct
@@ -23,6 +23,15 @@ class SimpleStruct extends TypeBase{
     uint16:number;
     @Field("uint32")
     uint32:number;
+    @Field("uint32",{
+        shape:[10],
+        encoding:'LE'
+    })
+    uint32x:number[];
+    @Field("string",{
+        shape:[10,10],
+    })
+    string:string[];
     @Field("uint64")
     uint64:number;
 }
@@ -57,4 +66,17 @@ Object.assign(struct.s1,{
     float64:0X6F6F6F6F6F6F6F6F
 });
 struct.uint64=0x6464646464n;
+struct.s1.string[0]='我666'
+struct.s1.string[5]='发法666345678674574'
+struct.s1.string=["0","vvvv","fwag","fwag","awrfawr","awgwag","grsh","rhrh","rgsrh","aggaeg","fwf"]
 console.log(view.buffer);
+console.log([...struct.s1.string]);
+const type=CreateStruct(ComplexStruct,null,0);
+
+// const x:Readonly<Array<any>>=new Uint8Array();
+// @Struct
+// class X{
+//     private view:DataView;
+//     private base:number;
+// }
+console.log(SizeOf("float32"))

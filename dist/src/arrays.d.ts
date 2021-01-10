@@ -1,62 +1,62 @@
-import { NativeTypes } from "./consts";
-interface TypedArray {
-    readonly BYTES_PER_ELEMENT: number;
+import { Endianness, NativeTypes } from "./consts";
+export interface ITypedArray extends ArrayBufferView {
     readonly buffer: ArrayBufferLike;
-    readonly byteLength: number;
-    readonly byteOffset: number;
+    readonly endian: Endianness;
 }
-declare class TypedArrayImpl<T extends number | BigInt> extends Array<T> implements TypedArray, ProxyHandler<Array<T>> {
-    readonly byteOffset: number;
-    static readonly BYTES_PER_ELEMENT: number;
+export declare class ArrayProxy<T> extends Array<T> {
+}
+export declare class TypedArray<T extends number | BigInt> extends ArrayProxy<T> implements ITypedArray, ProxyHandler<Array<T>> {
     static readonly type: NativeTypes;
+    static get BYTES_PER_ELEMENT(): number;
     readonly view: DataView;
-    get BYTES_PER_ELEMENT(): number;
+    readonly byteOffset: number;
+    readonly endian: Endianness;
     get type(): NativeTypes;
+    get BYTES_PER_ELEMENT(): number;
     get buffer(): ArrayBufferLike;
     get byteLength(): number;
-    constructor(view: DataView | ArrayBufferLike, byteOffset: number, length: number);
-    get(target: TypedArrayImpl<T>, prop: PropertyKey, receiver: any): any;
-    set(target: TypedArrayImpl<T>, prop: PropertyKey, value: any, receiver: any): boolean;
+    constructor(view: ArrayBufferView | ArrayBufferLike, byteOffset: number, length: number, endian?: Endianness);
+    get(target: TypedArray<T>, prop: PropertyKey, receiver: any): any;
+    set(target: TypedArray<T>, prop: PropertyKey, value: any, receiver: any): boolean;
 }
-export declare class Int8ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Int8ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Uint8ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Uint8ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Int16ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Int16ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Uint16ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Uint16ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Int32ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Int32ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Uint32ArrayProxy extends TypedArrayImpl<BigInt> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Uint32ArrayProxy extends TypedArray<BigInt> {
     static type: NativeTypes;
 }
-export declare class BigInt64ArrayProxy extends TypedArrayImpl<BigInt> {
-    static BYTES_PER_ELEMENT: number;
+export declare class BigInt64ArrayProxy extends TypedArray<BigInt> {
     static type: NativeTypes;
 }
-export declare class BigUint64ArrayProxy extends TypedArrayImpl<BigInt> {
-    static BYTES_PER_ELEMENT: number;
+export declare class BigUint64ArrayProxy extends TypedArray<BigInt> {
     static type: NativeTypes;
 }
-export declare class Float32ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Float32ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
 }
-export declare class Float64ArrayProxy extends TypedArrayImpl<number> {
-    static BYTES_PER_ELEMENT: number;
+export declare class Float64ArrayProxy extends TypedArray<number> {
     static type: NativeTypes;
+}
+export declare class StringArray extends ArrayProxy<string> implements ProxyHandler<StringArray> {
+    private readonly buffer;
+    private readonly byteOffset;
+    private readonly byteLength;
+    private readonly encoding?;
+    constructor(buffer: ArrayBufferLike, byteOffset: number, byteLength: number, length: number, encoding?: string);
+    get(target: StringArray, prop: PropertyKey): any;
+    set(target: StringArray, prop: PropertyKey, value: any): boolean;
 }
 export declare const ProxyTypeClassMap: {
     int8: typeof Int8ArrayProxy;
@@ -70,4 +70,4 @@ export declare const ProxyTypeClassMap: {
     float32: typeof Float32ArrayProxy;
     float64: typeof Float64ArrayProxy;
 };
-export {};
+//# sourceMappingURL=arrays.d.ts.map

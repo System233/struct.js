@@ -42,27 +42,19 @@ export declare const NativeTypeConventMap: {
     float64: NumberConstructor;
 };
 export declare enum NativeTypeSize {
-    int8 = 1,
-    uint8 = 1,
-    int16 = 2,
-    uint16 = 2,
-    int32 = 4,
-    uint32 = 4,
-    int64 = 8,
-    uint64 = 8,
-    float32 = 4,
-    float64 = 8
-}
-export declare enum NativeTypeNameMap {
-    int8 = "Int8",
-    uint8 = "Uint8",
-    int16 = "Int16",
-    uint16 = "Uint16",
-    int32 = "Int32",
-    uint32 = "Uint32",
-    int64 = "BigInt64",
-    uint64 = "BigUint64",
-    float32 = "Float32",
-    float64 = "Float64"
+    int8,
+    uint8,
+    int16,
+    uint16,
+    int32,
+    uint32,
+    int64,
+    uint64,
+    float32,
+    float64
 }
 export declare type NativeTypes = keyof NativeTypeMap;
+export declare type Endianness = "LE" | "BE";
+export declare const DefaultEndian: Endianness;
+export declare const DefaultEncoding = "utf-8";
+//# sourceMappingURL=consts.d.ts.map

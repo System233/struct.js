@@ -4,99 +4,126 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProxyTypeClassMap = exports.Float64ArrayProxy = exports.Float32ArrayProxy = exports.BigUint64ArrayProxy = exports.BigInt64ArrayProxy = exports.Uint32ArrayProxy = exports.Int32ArrayProxy = exports.Uint16ArrayProxy = exports.Int16ArrayProxy = exports.Uint8ArrayProxy = exports.Int8ArrayProxy = void 0;
+exports.ProxyTypeClassMap = exports.StringArray = exports.Float64ArrayProxy = exports.Float32ArrayProxy = exports.BigUint64ArrayProxy = exports.BigInt64ArrayProxy = exports.Uint32ArrayProxy = exports.Int32ArrayProxy = exports.Uint16ArrayProxy = exports.Int16ArrayProxy = exports.Uint8ArrayProxy = exports.Int8ArrayProxy = exports.TypedArray = exports.ArrayProxy = void 0;
+const consts_1 = require("./consts");
+const string_1 = require("./string");
 const utils_1 = require("./utils");
-// interface TypedArrayConstructor<T extends number|BigInt> extends ArrayConstructor{
-//     readonly prototype:TypedArray<T>;
-//     readonly BYTES_PER_ELEMENT: number;
-//     new(buffer: ArrayBufferLike, byteOffset?: number, length?: number): TypedArray<T>;
-// }
-// declare var TypedArray: TypedArrayConstructor<number|BigInt>;
-class TypedArrayImpl extends Array {
-    constructor(view, byteOffset, length) {
+class ArrayProxy extends Array {
+}
+exports.ArrayProxy = ArrayProxy;
+class TypedArray extends ArrayProxy {
+    constructor(view, byteOffset, length, endian) {
         super(length);
-        this.byteOffset = byteOffset;
-        if (!ArrayBuffer.isView(view)) {
-            view = new DataView(view, 0, length * this.BYTES_PER_ELEMENT);
+        if (ArrayBuffer.isView(view)) {
+            if (view instanceof DataView) {
+                this.view = view;
+            }
+            else {
+                this.view = new DataView(view.buffer, view.byteOffset, view.byteOffset);
+            }
         }
-        this.view = view;
+        else {
+            this.view = new DataView(view, 0, view.byteLength);
+        }
+        this.byteOffset = byteOffset || 0;
+        this.endian = endian || consts_1.DefaultEndian;
         Object.freeze(this);
         return new Proxy(this, this);
     }
-    get BYTES_PER_ELEMENT() { return this.constructor.BYTES_PER_ELEMENT; }
-    get type() { return this.constructor.type; }
+    static get BYTES_PER_ELEMENT() { return consts_1.NativeTypeSize[this.type]; }
+    ;
+    get type() { return (Object.getPrototypeOf(this).constructor).type; }
+    get BYTES_PER_ELEMENT() { return (Object.getPrototypeOf(this).constructor).BYTES_PER_ELEMENT; }
     get buffer() { return this.view.buffer; }
     get byteLength() { return this.BYTES_PER_ELEMENT * this.length; }
     get(target, prop, receiver) {
         if (typeof prop == "string" && isFinite(+prop) || typeof prop == "number") {
-            const index = +prop;
-            if (index >= target.length)
-                return null;
-            return utils_1.NativeTypeDef[this.type].get(this.view, this.byteOffset + index * this.BYTES_PER_ELEMENT);
+            return utils_1.NativeTypeDef[this.type].get(this.view, this.byteOffset + (+prop) * this.BYTES_PER_ELEMENT, this.endian);
         }
         return target[prop];
     }
     set(target, prop, value, receiver) {
         if (typeof prop == "string" && isFinite(+prop) || typeof prop == "number") {
-            const index = +prop;
-            if (index >= target.length)
-                return false;
-            utils_1.NativeTypeDef[this.type].set(this.view, this.byteOffset + index * this.BYTES_PER_ELEMENT, value);
+            utils_1.NativeTypeDef[this.type].set(this.view, this.byteOffset + (+prop) * this.BYTES_PER_ELEMENT, value, this.endian);
             return true;
         }
+        target[prop] = value;
         return true;
     }
 }
-class Int8ArrayProxy extends TypedArrayImpl {
+exports.TypedArray = TypedArray;
+class Int8ArrayProxy extends TypedArray {
 }
 exports.Int8ArrayProxy = Int8ArrayProxy;
-Int8ArrayProxy.BYTES_PER_ELEMENT = Int8Array.BYTES_PER_ELEMENT;
 Int8ArrayProxy.type = "int8";
-class Uint8ArrayProxy extends TypedArrayImpl {
+class Uint8ArrayProxy extends TypedArray {
 }
 exports.Uint8ArrayProxy = Uint8ArrayProxy;
-Uint8ArrayProxy.BYTES_PER_ELEMENT = Uint8Array.BYTES_PER_ELEMENT;
 Uint8ArrayProxy.type = "uint8";
-class Int16ArrayProxy extends TypedArrayImpl {
+class Int16ArrayProxy extends TypedArray {
 }
 exports.Int16ArrayProxy = Int16ArrayProxy;
-Int16ArrayProxy.BYTES_PER_ELEMENT = Int16Array.BYTES_PER_ELEMENT;
 Int16ArrayProxy.type = "int16";
-class Uint16ArrayProxy extends TypedArrayImpl {
+class Uint16ArrayProxy extends TypedArray {
 }
 exports.Uint16ArrayProxy = Uint16ArrayProxy;
-Uint16ArrayProxy.BYTES_PER_ELEMENT = Uint16Array.BYTES_PER_ELEMENT;
 Uint16ArrayProxy.type = "uint16";
-class Int32ArrayProxy extends TypedArrayImpl {
+class Int32ArrayProxy extends TypedArray {
 }
 exports.Int32ArrayProxy = Int32ArrayProxy;
-Int32ArrayProxy.BYTES_PER_ELEMENT = Int32Array.BYTES_PER_ELEMENT;
 Int32ArrayProxy.type = "int32";
-class Uint32ArrayProxy extends TypedArrayImpl {
+class Uint32ArrayProxy extends TypedArray {
 }
 exports.Uint32ArrayProxy = Uint32ArrayProxy;
-Uint32ArrayProxy.BYTES_PER_ELEMENT = Uint32Array.BYTES_PER_ELEMENT;
 Uint32ArrayProxy.type = "uint32";
-class BigInt64ArrayProxy extends TypedArrayImpl {
+class BigInt64ArrayProxy extends TypedArray {
 }
 exports.BigInt64ArrayProxy = BigInt64ArrayProxy;
-BigInt64ArrayProxy.BYTES_PER_ELEMENT = BigInt64Array.BYTES_PER_ELEMENT;
 BigInt64ArrayProxy.type = "int64";
-class BigUint64ArrayProxy extends TypedArrayImpl {
+class BigUint64ArrayProxy extends TypedArray {
 }
 exports.BigUint64ArrayProxy = BigUint64ArrayProxy;
-BigUint64ArrayProxy.BYTES_PER_ELEMENT = BigUint64Array.BYTES_PER_ELEMENT;
 BigUint64ArrayProxy.type = "uint64";
-class Float32ArrayProxy extends TypedArrayImpl {
+class Float32ArrayProxy extends TypedArray {
 }
 exports.Float32ArrayProxy = Float32ArrayProxy;
-Float32ArrayProxy.BYTES_PER_ELEMENT = Float32Array.BYTES_PER_ELEMENT;
 Float32ArrayProxy.type = "float32";
-class Float64ArrayProxy extends TypedArrayImpl {
+class Float64ArrayProxy extends TypedArray {
 }
 exports.Float64ArrayProxy = Float64ArrayProxy;
-Float64ArrayProxy.BYTES_PER_ELEMENT = Float64Array.BYTES_PER_ELEMENT;
 Float64ArrayProxy.type = "float64";
+class StringArray extends ArrayProxy {
+    constructor(buffer, byteOffset, byteLength, length, encoding) {
+        super(length);
+        this.buffer = buffer;
+        this.byteOffset = byteOffset;
+        this.byteLength = byteLength;
+        this.encoding = encoding;
+        Object.freeze(this);
+        return new Proxy(this, this);
+    }
+    get(target, prop) {
+        if (typeof prop == "string" && isFinite(+prop) || typeof prop == "number") {
+            return string_1.ReadAsString(this.buffer, this.byteOffset + (+prop) * this.byteLength, this.byteLength, this.encoding);
+        }
+        if (prop in target) {
+            return target[prop];
+        }
+        return undefined;
+    }
+    set(target, prop, value) {
+        if (typeof prop == "string" && isFinite(+prop) || typeof prop == "number") {
+            string_1.WriteAsString(this.buffer, this.byteOffset + (+prop) * this.byteLength, this.byteLength, this.encoding, value);
+            return true;
+        }
+        if (prop in target) {
+            target[prop] = value;
+            return true;
+        }
+        return false;
+    }
+}
+exports.StringArray = StringArray;
 exports.ProxyTypeClassMap = {
     int8: Int8ArrayProxy,
     uint8: Uint8ArrayProxy,
@@ -109,3 +136,4 @@ exports.ProxyTypeClassMap = {
     float32: Float32ArrayProxy,
     float64: Float64ArrayProxy,
 };
+//# sourceMappingURL=arrays.js.map

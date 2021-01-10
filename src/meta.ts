@@ -5,5 +5,5 @@
 
 import { META } from "./consts";
 export { META } from "./consts";
-export const GetMetaData=<T>(target:object,meta:META):T=>Reflect.get(target,meta);
-export const SetMetaData=<T>(target:object,meta:META,value:T)=>Reflect.set(target,meta,value);
+export const GetMetaData=<T>(target:object,meta:META):T=>Reflect.get(typeof target=="function"?target.prototype:target,meta);
+export const SetMetaData=<T>(target:object,meta:META,value:T)=>Reflect.set(typeof target=="function"?target.prototype:target,meta,value);

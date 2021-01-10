@@ -5,23 +5,22 @@
 
 import { TypeBase } from "./common";
 import { NativeTypes } from "./consts";
-import { FieldDef } from "./field";
-import { AddField,InitStruct} from "./types";
+import { FieldDef, FieldOption, FiledType } from "./field";
+import { AddField,CreateStruct} from "./types";
 
-
-export const Field= (type:NativeTypes|typeof TypeBase,option?:FieldDef):PropertyDecorator=>{
-    return (target: Object, propertyKey: string | symbol):void=>AddField(target,
+export const Field= <T extends FiledType>(type:T,option?:Partial<FieldOption&{type:T}>):PropertyDecorator=>{
+    return <T extends TypeBase>(target: T, propertyKey: string | symbol):void=>AddField(target,
         {
             name:propertyKey,
             type,
-            ...option||{}
+            ...option as any||{}
         });
 }
-export const Struct= <T extends {new(...args:any[]):TypeBase}>(constructor:T)=>{
-    return class extends constructor {
+export const Struct= <T extends typeof TypeBase>(constructor:T):T=>{
+    return <T>class extends (constructor as any) {
         constructor(...args){
             super(...args);
-            return InitStruct(this);
+            return CreateStruct(this as InstanceType<T>);
         }
     };
 }
