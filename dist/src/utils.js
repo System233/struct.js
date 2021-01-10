@@ -4,7 +4,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Dump = exports.DumpStruct = exports.DumpField = exports.DeepAssign = exports.SizeOf = exports.IsStringField = exports.IsStringType = exports.IsCustomField = exports.IsCustomType = exports.IsNativeField = exports.IsNativeType = exports.NativeTypeDef = exports.GetNativeTypeDef = void 0;
+exports.SetTypeInited = exports.IsTypeInited = exports.SetTypeFields = exports.GetTypeFields = exports.NullOrDef = exports.SetDefaultAlign = exports.GetDefaultAlign = exports.SetFieldDef = exports.GetFieldDef = exports.SetTypeDef = exports.GetTypeDef = exports.Aligns = exports.Dump = exports.DumpType = exports.DumpField = exports.TypeToCpp = exports.DeepAssign = exports.SizeOf = exports.IsStringField = exports.IsStringType = exports.IsCustomField = exports.IsCustomType = exports.IsNativeField = exports.IsNativeType = exports.NativeTypeDef = exports.GetNativeTypeDef = void 0;
 const common_1 = require("./common");
 const consts_1 = require("./consts");
 const meta_1 = require("./meta");
@@ -69,9 +69,9 @@ exports.IsStringType = (type) => {
 exports.IsStringField = (field) => {
     return exports.IsStringType(field.type);
 };
-exports.SizeOf = (type) => {
+exports.SizeOf = (type, real) => {
     if (exports.IsCustomType(type)) {
-        return exports.SizeOf(type.prototype);
+        return exports.SizeOf(type.prototype, real);
     }
     if (exports.IsNativeType(type)) {
         return consts_1.NativeTypeSize[type];
@@ -80,7 +80,7 @@ exports.SizeOf = (type) => {
         return 1;
     }
     if (type instanceof common_1.TypeBase) {
-        return meta_1.GetMetaData(type, consts_1.META.SIZE) || 0;
+        return meta_1.GetMetaData(type, real ? consts_1.META.REAL_SIZE : consts_1.META.SIZE, 0);
     }
     return undefined;
 };
@@ -103,6 +103,15 @@ exports.DeepAssign = (target, ...args) => {
     });
     return target;
 };
+exports.TypeToCpp = (type) => {
+    if (exports.IsCustomType(type))
+        return type.name;
+    if (exports.IsNativeType(type))
+        return `${type}_t`;
+    if (exports.IsStringType(type))
+        return 'char';
+    return null;
+};
 exports.DumpField = (field, deep) => {
     deep = deep || 0;
     const dumpShape = (shape) => shape ? shape.map(x => `[${x}]`).join('') : '';
@@ -117,7 +126,7 @@ exports.DumpField = (field, deep) => {
     const pad = Array(deep + 1).join('\t');
     if (exports.IsNativeField(field) || exports.IsStringField(field)) {
         const { type, name, shape } = field;
-        return `${pad}${type}\t${name}${dumpShape(shape)};\t//${dumpInfo()}\n`;
+        return `${pad}${exports.TypeToCpp(type)}\t${name}${dumpShape(shape)};\t//${dumpInfo()}\n`;
     }
     else if (exports.IsCustomField(field)) {
         const { type, name, shape } = field;
@@ -125,17 +134,67 @@ exports.DumpField = (field, deep) => {
     }
     return null;
 };
-exports.DumpStruct = (type) => {
+exports.DumpType = (type) => {
     if (typeof type == "function")
         type = type.prototype;
-    const fields = meta_1.GetMetaData(type, consts_1.META.FIELD);
+    const fields = exports.GetTypeFields(type);
     const size = exports.SizeOf(type);
-    return `class ${type.constructor.name}{\t//${size}\n${Object.values(fields).map(field => exports.DumpField(field, 1)).join('')}}`;
+    const align = meta_1.GetMetaData(type, consts_1.META.ALIGN);
+    return `struct ${type.constructor.name}{\t//${size}, align=${align}\n${Array.from(fields.values(), field => exports.DumpField(field, 1)).join('')}}__attribute__((aligned(${align})));`;
 };
 exports.Dump = (type) => {
     if (typeof type == "function" && type.prototype instanceof common_1.TypeBase || type instanceof common_1.TypeBase) {
-        return exports.DumpStruct(type);
+        return exports.DumpType(type);
     }
     return exports.DumpField(type, 0);
 };
+//1,4->4
+//2,4->4
+//5,4->8
+exports.Aligns = (addr, align) => (addr + align - 1) & (~(align - 1));
+exports.GetTypeDef = (target) => meta_1.GetMetaData(target, consts_1.META.OPTION);
+exports.SetTypeDef = (target, option) => {
+    const value = meta_1.GetMetaData(target, consts_1.META.OPTION, {});
+    Object.assign(value, option);
+    meta_1.SetMetaData(target, consts_1.META.OPTION, value);
+};
+exports.GetFieldDef = (target, name) => {
+    const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
+    if (fields && fields.has(name))
+        return fields.get(name);
+    return null;
+};
+exports.SetFieldDef = (target, name, option) => {
+    const fields = meta_1.GetMetaData(target, consts_1.META.FIELD, new Map);
+    if (fields.has(name)) {
+        Object.assign(fields.get(name), option);
+    }
+    else {
+        fields.set(name, option);
+        meta_1.SetMetaData(target, consts_1.META.FIELD, fields);
+    }
+};
+exports.GetDefaultAlign = (type) => {
+    if (exports.IsCustomType(type)) {
+        const { aligned: align } = meta_1.GetMetaData(type, consts_1.META.OPTION, {});
+        return exports.NullOrDef(align, 1);
+    }
+    else {
+        return exports.SizeOf(type);
+    }
+};
+exports.SetDefaultAlign = (type, align) => {
+    if (exports.IsCustomType(type)) {
+        const option = meta_1.GetMetaData(type, consts_1.META.OPTION, {});
+        option.aligned = align;
+        meta_1.SetMetaData(type, consts_1.META.OPTION, option);
+        return true;
+    }
+    return false;
+};
+exports.NullOrDef = (...items) => items.find(x => x != null);
+exports.GetTypeFields = (type) => meta_1.GetMetaData(type, consts_1.META.FIELD);
+exports.SetTypeFields = (type, fields) => meta_1.SetMetaData(type, consts_1.META.FIELD, fields);
+exports.IsTypeInited = (type) => meta_1.GetMetaData(type, consts_1.META.INITED, false);
+exports.SetTypeInited = (type, inited) => meta_1.SetMetaData(type, consts_1.META.INITED, inited);
 //# sourceMappingURL=utils.js.map

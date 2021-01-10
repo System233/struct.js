@@ -24,7 +24,7 @@ __decorate([
     src_1.Field("int64")
 ], SimpleType.prototype, "int64", void 0);
 __decorate([
-    src_1.Field("uint64", { encoding: 'BE' })
+    src_1.Field("uint64", { endian: 'BE' })
 ], SimpleType.prototype, "uint64", void 0);
 __decorate([
     src_1.Field("string", { shape: [10] })
@@ -39,7 +39,8 @@ __decorate([
     src_1.Field("uint64", { shape: [2, 3, 4], native: true })
 ], SimpleType.prototype, "nativeArray64", void 0);
 SimpleType = __decorate([
-    src_1.Struct
+    src_1.Struct,
+    src_1.Aligned(16)
 ], SimpleType);
 // 嵌套类型
 let ComplexType = class ComplexType extends src_1.TypeBase {
@@ -56,30 +57,30 @@ ComplexType = __decorate([
 // 继承类型(尚未测试)
 //@Struct
 //class ExtendsType extends ComplexType{}
-// 打印结构体类型
-console.log("SizeOf(SimpleStruct)=", src_1.SizeOf(SimpleType));
-console.log("SizeOf(ComplexType)=", src_1.SizeOf(ComplexType));
-// 实例化结构
-const buffer = new ArrayBuffer(src_1.SizeOf(SimpleType));
-const struct = new SimpleType(buffer);
-// 测试赋值
-struct.int8 = 0x80;
-struct.uint8 = 0xF0;
-/*...*/
-struct.str10 = "测试utf8";
-struct.str10s = ["我额", "字符", "test", "emmm", "end"];
-struct.int64 = 0x6465666768696a6bn;
-struct.uint64 = 0xf4f5f6f7f8f9fafbn;
-// 打印结构
-console.log("int8=", struct.int64);
-console.log("uint8=", struct.uint64);
-console.log("str10=", struct.str10);
-console.log("str10s[0]=", struct.str10s[0]);
-console.log("str10s[1]=", struct.str10s[1]);
-console.log("str10s=", [...struct.str10s]);
-console.log("int64=", struct.int64);
-console.log("uint64=", struct.uint64);
-console.log(buffer);
+// // 打印结构体类型
+// console.log("SizeOf(SimpleStruct)=",SizeOf(SimpleType));
+// console.log("SizeOf(ComplexType)=",SizeOf(ComplexType));
+// // 实例化结构
+// const buffer=new ArrayBuffer(SizeOf(SimpleType));
+// const struct=new SimpleType(buffer);
+// // 测试赋值
+// struct.int8=0x80;
+// struct.uint8=0xF0;
+// /*...*/
+// struct.str10="测试utf8"
+// struct.str10s=["我额","字符","test","emmm","end"]
+// struct.int64=0x6465666768696A6Bn;
+// struct.uint64=0xF4F5F6F7F8F9FAFBn;
+// // 打印结构
+// console.log("int8=",struct.int64);
+// console.log("uint8=",struct.uint64);
+// console.log("str10=",struct.str10);
+// console.log("str10s[0]=",struct.str10s[0]);
+// console.log("str10s[1]=",struct.str10s[1]);
+// console.log("str10s=",[...struct.str10s]);
+// console.log("int64=",struct.int64);
+// console.log("uint64=",struct.uint64);
+// console.log(buffer)
 console.log(src_1.Dump(SimpleType));
 console.log(src_1.Dump(ComplexType));
 //# sourceMappingURL=example.js.map

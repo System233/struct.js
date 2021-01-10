@@ -1,6 +1,7 @@
 import { TypeBase } from "./common";
-import { FieldDef, FieldOption } from "./field";
-export declare const AddField: <T extends TypeBase>(target: T, field: FieldOption) => void;
+import { FieldDef } from "./field";
+export declare const AddField: <T extends TypeBase>(target: T, field: FieldDef) => void;
+export declare const InitStruct: <T extends TypeBase>(type: T) => void;
 export declare class StructHandler<T extends TypeBase> implements ProxyHandler<T> {
     read(target: T, field: FieldDef): any;
     write(target: T, field: FieldDef, value: any): boolean;

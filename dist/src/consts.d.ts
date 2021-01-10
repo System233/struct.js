@@ -3,7 +3,10 @@ export declare enum META {
     BASE = 1,
     FIELD = 2,
     SIZE = 3,
-    ALIGN = 4
+    REAL_SIZE = 4,
+    INITED = 5,
+    OPTION = 6,
+    ALIGN = 7
 }
 export interface NativeTypeMap {
     int8: [number, Int8Array];
@@ -53,7 +56,8 @@ export declare enum NativeTypeSize {
     float32,
     float64
 }
-export declare type NativeTypes = keyof NativeTypeMap;
+export declare type NativeType = keyof NativeTypeMap;
+export declare type StringType = "string";
 export declare type Endianness = "LE" | "BE";
 export declare const DefaultEndian: Endianness;
 export declare const DefaultEncoding = "utf-8";

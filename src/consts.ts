@@ -8,7 +8,10 @@ export enum META{
     BASE,
     FIELD,
     SIZE,
-    ALIGN,
+    REAL_SIZE,
+    INITED,
+    OPTION,
+    ALIGN
 }
 
 export interface NativeTypeMap{
@@ -62,7 +65,8 @@ export enum NativeTypeSize{
     float64=Float64Array.BYTES_PER_ELEMENT,
 }
 
-export type NativeTypes=keyof NativeTypeMap;
+export type NativeType=keyof NativeTypeMap;
+export type StringType="string";
 
 export type Endianness="LE"|"BE";
 export const DefaultEndian:Endianness=(()=>{

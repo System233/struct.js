@@ -3,11 +3,13 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { type } from "os";
 import { ArrayProxy } from "./arrays";
-import { TypeBase } from "./common";
-import { DefaultEndian, Endianness, META, NativeTypeConventMap, NativeTypeMap, NativeTypes, NativeTypeSize } from "./consts";
-import { FieldDef, FieldNativeDef, FieldOption, FieldStringDef, FieldTypeDef } from "./field";
-import { GetMetaData } from "./meta";
+import { TypeBase, TypeDef, TypeOption } from "./common";
+import { DefaultEndian, Endianness, META, NativeTypeConventMap, NativeTypeMap, NativeType, NativeTypeSize, StringType } from "./consts";
+import { FieldDef, FieldNativeDef, FieldOption, Fields, FieldStringDef, FieldTypeDef } from "./field";
+import { GetMetaData, SetMetaData } from "./meta";
+import { AddField } from "./types";
 enum NativeTypeNameMap{
     int8='Int8',
     uint8='Uint8',
@@ -51,7 +53,7 @@ export const NativeTypeDef={
     float64:GetNativeTypeDef('float64'),
 }
 
-export const IsNativeType=(type:any):type is NativeTypes=>{
+export const IsNativeType=(type:any):type is NativeType=>{
     return type in NativeTypeNameMap;
 }
 export const IsNativeField=(field:FieldDef|FieldOption):field is FieldNativeDef=>{
@@ -63,7 +65,7 @@ export const IsCustomType=(type:any):type is typeof TypeBase=>{
 export const IsCustomField=(field:FieldDef|FieldOption):field is FieldTypeDef=>{
     return IsCustomType(field.type);
 }
-export const IsStringType=(type:any):type is "string"=>{
+export const IsStringType=(type:any):type is StringType=>{
     return type=="string";
 }
 export const IsStringField=(field:FieldDef|FieldOption):field is FieldStringDef=>{
@@ -71,9 +73,9 @@ export const IsStringField=(field:FieldDef|FieldOption):field is FieldStringDef=
 }
 
 
-export const SizeOf=(type:typeof TypeBase|TypeBase|NativeTypes):number=>{
+export const SizeOf=(type:typeof TypeBase|TypeBase|NativeType,real?:boolean):number=>{
     if(IsCustomType(type)){
-        return SizeOf(type.prototype);
+        return SizeOf(type.prototype,real);
     }
     if(IsNativeType(type)){
         return NativeTypeSize[type];
@@ -82,7 +84,7 @@ export const SizeOf=(type:typeof TypeBase|TypeBase|NativeTypes):number=>{
         return 1;
     }
     if(type instanceof TypeBase){
-        return GetMetaData<number>(type,META.SIZE)||0;
+        return GetMetaData<number>(type,real?META.REAL_SIZE:META.SIZE,0);
     }
     return undefined;
 }
@@ -104,7 +106,15 @@ export const DeepAssign=<T extends Object>(target:T,...args:object[]):T=>{
     });
     return target;
 }
-
+export const TypeToCpp=(type:NativeType|typeof TypeBase|StringType)=>{
+    if(IsCustomType(type))
+        return type.name;
+    if(IsNativeType(type))
+        return `${type}_t`;
+    if(IsStringType(type))
+        return 'char';
+    return null;
+}
 export const DumpField=(field:FieldDef,deep?:number):string=>{
     deep=deep||0;
     const dumpShape=(shape)=>shape?shape.map(x=>`[${x}]`).join(''):'';
@@ -119,7 +129,7 @@ export const DumpField=(field:FieldDef,deep?:number):string=>{
     const pad=Array(deep+1).join('\t');
     if(IsNativeField(field)||IsStringField(field)){
         const {type,name,shape}=field;
-        return `${pad}${type}\t${name as any}${dumpShape(shape)};\t//${dumpInfo()}\n`
+        return `${pad}${TypeToCpp(type)}\t${name as any}${dumpShape(shape)};\t//${dumpInfo()}\n`
     }
     else if(IsCustomField(field)){
         const {type,name,shape}=field;
@@ -127,16 +137,68 @@ export const DumpField=(field:FieldDef,deep?:number):string=>{
     }
     return null;
 }
-export const DumpStruct=<T extends typeof TypeBase|TypeBase>(type:T):string=>{
+export const DumpType=<T extends typeof TypeBase|TypeBase>(type:T):string=>{
     if(typeof type=="function")
         type=type.prototype;
-    const fields=GetMetaData(type,META.FIELD);
+    const fields=GetTypeFields(type);
     const size=SizeOf(type);
-    return `class ${type.constructor.name}{\t//${size}\n${Object.values(fields).map(field=>DumpField(field,1)).join('')}}`;
+    const align=GetMetaData<number>(type,META.ALIGN);
+    return `struct ${type.constructor.name}{\t//${size}, align=${align}\n${Array.from(fields.values(),field=>DumpField(field,1)).join('')}}__attribute__((aligned(${align})));`;
 }
 export const Dump=<T extends typeof TypeBase|TypeBase|FieldDef>(type:T):string=>{
     if(typeof type=="function"&&type.prototype instanceof TypeBase||type instanceof TypeBase){
-        return DumpStruct(type);
+        return DumpType(type);
     }
     return DumpField(type as any,0);
 }
+//1,4->4
+//2,4->4
+//5,4->8
+export const Aligns=(addr:number,align:NativeTypeSize)=>(addr+align-1)&(~(align-1));
+
+export const GetTypeDef=<T extends TypeBase>(target:T)=>GetMetaData<TypeDef>(target,META.OPTION);
+export const SetTypeDef=<T extends TypeBase>(target:T,option:TypeOption)=>{
+    const value=GetMetaData<TypeOption>(target,META.OPTION,{});
+    Object.assign(value,option);
+    SetMetaData<TypeOption>(target,META.OPTION,value);
+}
+
+export const GetFieldDef=<T extends TypeBase>(target:T,name:PropertyKey)=>{
+    const fields=GetMetaData<Fields>(target,META.FIELD);
+    if(fields&&fields.has(name))
+        return fields.get(name);
+    return null;
+};
+
+export const SetFieldDef=<T extends TypeBase>(target:T,name:PropertyKey,option:FieldOption)=>{
+    const fields=GetMetaData<Fields>(target,META.FIELD,new Map);
+    if(fields.has(name)){
+        Object.assign(fields.get(name),option);
+    }else{
+        fields.set(name,option as FieldDef);
+        SetMetaData(target,META.FIELD,fields);
+    }
+}
+export const GetDefaultAlign=(type:typeof TypeBase|NativeType|StringType):number=>{
+    if(IsCustomType(type)){
+        const {aligned: align}=GetMetaData<TypeOption>(type,META.OPTION,{});
+        return NullOrDef(align,1);
+    }else{
+        return SizeOf(type);
+    }
+}
+export const SetDefaultAlign=(type:typeof TypeBase,align:number):boolean=>{
+    if(IsCustomType(type)){
+        const option=GetMetaData<TypeOption>(type,META.OPTION,{});
+        option.aligned=align;
+        SetMetaData<TypeOption>(type,META.OPTION,option);
+        return true;
+    }
+    return false;
+}
+export const NullOrDef=<T>(...items:T[])=>items.find(x=>x!=null);
+
+export const GetTypeFields=<T extends TypeBase>(type:T)=>GetMetaData<Fields>(type,META.FIELD);
+export const SetTypeFields=<T extends TypeBase>(type:T,fields:Fields)=>SetMetaData<Fields>(type,META.FIELD,fields);
+export const IsTypeInited=<T extends TypeBase>(type:T)=>GetMetaData<boolean>(type,META.INITED,false);
+export const SetTypeInited=<T extends TypeBase>(type:T,inited:boolean)=>SetMetaData<boolean>(type,META.INITED,inited);

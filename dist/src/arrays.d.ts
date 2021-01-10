@@ -1,4 +1,4 @@
-import { Endianness, NativeTypes } from "./consts";
+import { Endianness, NativeType } from "./consts";
 export interface ITypedArray extends ArrayBufferView {
     readonly buffer: ArrayBufferLike;
     readonly endian: Endianness;
@@ -6,12 +6,12 @@ export interface ITypedArray extends ArrayBufferView {
 export declare class ArrayProxy<T> extends Array<T> {
 }
 export declare class TypedArray<T extends number | BigInt> extends ArrayProxy<T> implements ITypedArray, ProxyHandler<Array<T>> {
-    static readonly type: NativeTypes;
+    static readonly type: NativeType;
     static get BYTES_PER_ELEMENT(): number;
     readonly view: DataView;
     readonly byteOffset: number;
     readonly endian: Endianness;
-    get type(): NativeTypes;
+    get type(): NativeType;
     get BYTES_PER_ELEMENT(): number;
     get buffer(): ArrayBufferLike;
     get byteLength(): number;
@@ -20,34 +20,34 @@ export declare class TypedArray<T extends number | BigInt> extends ArrayProxy<T>
     set(target: TypedArray<T>, prop: PropertyKey, value: any, receiver: any): boolean;
 }
 export declare class Int8ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Uint8ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Int16ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Uint16ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Int32ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Uint32ArrayProxy extends TypedArray<BigInt> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class BigInt64ArrayProxy extends TypedArray<BigInt> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class BigUint64ArrayProxy extends TypedArray<BigInt> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Float32ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class Float64ArrayProxy extends TypedArray<number> {
-    static type: NativeTypes;
+    static type: NativeType;
 }
 export declare class StringArray extends ArrayProxy<string> implements ProxyHandler<StringArray> {
     private readonly buffer;

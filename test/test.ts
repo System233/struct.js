@@ -3,15 +3,19 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Field, GetMetaData, META, SizeOf, Struct, TypeBase, CreateStruct } from "../src";
+import { Field, GetMetaData, META, SizeOf, Struct, TypeBase, CreateStruct, Aligned, SetOption, Encoding, BigEndian, Size, Offset, Endian, Dump } from "../src";
+import { RunCppTest } from "./utils";
 
 
 @Struct
+@Aligned(1<<10)
 class SimpleStruct extends TypeBase{
     @Field("int8")
     int8:number;
+
     @Field("int16")
     int16:number;
+
     @Field("int32")
     int32:number;
     @Field("int64")
@@ -25,11 +29,11 @@ class SimpleStruct extends TypeBase{
     uint32:number;
     @Field("uint32",{
         shape:[10],
-        encoding:'LE'
+        endian:'LE'
     })
     uint32x:number[];
     @Field("string",{
-        shape:[10,10],
+        shape:[10,9],
     })
     string:string[];
     @Field("uint64")
@@ -44,9 +48,14 @@ class ComplexStruct extends TypeBase{
     s2:SimpleStruct;
     
     @Field("uint64")
+    @Encoding('E')
+    @Endian('BE')
+    @BigEndian
     uint64:BigInt;
 }
 console.log("SizeOf(ComplexStruct)=",SizeOf(ComplexStruct));
+console.log(Dump(ComplexStruct))
+console.log(Dump(SimpleStruct))
 const struct=new ComplexStruct();
 const view:DataView=GetMetaData(struct,META.VIEW);
 Object.assign(struct.s1,{
@@ -75,8 +84,11 @@ const type=CreateStruct(ComplexStruct,null,0);
 
 // const x:Readonly<Array<any>>=new Uint8Array();
 // @Struct
+// @SetOption()
 // class X{
 //     private view:DataView;
 //     private base:number;
 // }
 console.log(SizeOf("float32"))
+RunCppTest("test",SimpleStruct,ComplexStruct);
+

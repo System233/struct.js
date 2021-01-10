@@ -104,7 +104,7 @@ console.log(Dump(ComplexType))
 
 - [x] `string`类型支持
 - [x] Little/Big-Endian 字节序
-- [ ] Byte-Aligned 字节对齐
+- [x] Byte-Aligned 字节对齐
 - [ ] Extends 继承类型
 - [ ] Union 联合类型
 - [ ] JavaScript API

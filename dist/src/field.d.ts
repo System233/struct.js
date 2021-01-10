@@ -1,29 +1,32 @@
 import { TypeBase } from "./common";
-import { Endianness, NativeTypes as NativeType } from "./consts";
+import { Endianness, NativeType, StringType } from "./consts";
 export interface FieldDef {
-    type: NativeType | typeof TypeBase | "string";
+    type: NativeType | typeof TypeBase | StringType;
     name: PropertyKey;
     offset: number;
+    aligned: number;
     size: number;
-    native?: boolean;
-    shape?: number[];
-    encoding?: Endianness | string;
+    native: boolean;
+    shape: number[];
+    encoding: string;
+    endian: Endianness;
 }
 export interface FieldNativeDef extends Partial<FieldDef> {
     type?: NativeType;
-    encoding?: Endianness;
+    endian?: Endianness;
+    encoding?: never;
 }
 export interface FieldTypeDef extends Partial<FieldDef> {
     type?: typeof TypeBase;
+    endian?: never;
     encoding?: never;
 }
 export interface FieldStringDef extends Partial<FieldDef> {
     type?: "string";
     encoding?: string;
+    endian?: never;
 }
 export declare type FieldOption = FieldTypeDef | FieldNativeDef | FieldStringDef;
-export declare type FiledType = NativeType | typeof TypeBase | "string";
-export declare type Fields = {
-    [key in PropertyKey]: FieldDef;
-};
+export declare type FiledType = NativeType | typeof TypeBase | StringType;
+export declare type Fields = Map<PropertyKey, FieldDef>;
 //# sourceMappingURL=field.d.ts.map

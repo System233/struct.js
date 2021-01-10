@@ -11,7 +11,10 @@ var META;
     META[META["BASE"] = 1] = "BASE";
     META[META["FIELD"] = 2] = "FIELD";
     META[META["SIZE"] = 3] = "SIZE";
-    META[META["ALIGN"] = 4] = "ALIGN";
+    META[META["REAL_SIZE"] = 4] = "REAL_SIZE";
+    META[META["INITED"] = 5] = "INITED";
+    META[META["OPTION"] = 6] = "OPTION";
+    META[META["ALIGN"] = 7] = "ALIGN";
 })(META = exports.META || (exports.META = {}));
 exports.NativeTypeClassMap = {
     int8: Int8Array,

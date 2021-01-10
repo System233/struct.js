@@ -5,8 +5,13 @@
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetMetaData = exports.GetMetaData = void 0;
-var consts_1 = require("./consts");
-Object.defineProperty(exports, "META", { enumerable: true, get: function () { return consts_1.META; } });
-exports.GetMetaData = (target, meta) => Reflect.get(typeof target == "function" ? target.prototype : target, meta);
-exports.SetMetaData = (target, meta, value) => Reflect.set(typeof target == "function" ? target.prototype : target, meta, value);
+const GetMetaTarget = (target) => typeof target == "function" ? target.prototype : target;
+exports.GetMetaData = (target, meta, def) => {
+    target = GetMetaTarget(target);
+    if (Reflect.has(target, meta)) {
+        return Reflect.get(target, meta);
+    }
+    return def;
+};
+exports.SetMetaData = (target, meta, value) => Reflect.set(GetMetaTarget(target), meta, value);
 //# sourceMappingURL=meta.js.map

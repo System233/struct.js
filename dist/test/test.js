@@ -11,6 +11,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const src_1 = require("../src");
+const utils_1 = require("./utils");
 let SimpleStruct = class SimpleStruct extends src_1.TypeBase {
 };
 __decorate([
@@ -37,19 +38,20 @@ __decorate([
 __decorate([
     src_1.Field("uint32", {
         shape: [10],
-        encoding: 'LE'
+        endian: 'LE'
     })
 ], SimpleStruct.prototype, "uint32x", void 0);
 __decorate([
     src_1.Field("string", {
-        shape: [10, 10],
+        shape: [10, 9],
     })
 ], SimpleStruct.prototype, "string", void 0);
 __decorate([
     src_1.Field("uint64")
 ], SimpleStruct.prototype, "uint64", void 0);
 SimpleStruct = __decorate([
-    src_1.Struct
+    src_1.Struct,
+    src_1.Aligned(1 << 10)
 ], SimpleStruct);
 let ComplexStruct = class ComplexStruct extends src_1.TypeBase {
 };
@@ -60,12 +62,17 @@ __decorate([
     src_1.Field(SimpleStruct)
 ], ComplexStruct.prototype, "s2", void 0);
 __decorate([
-    src_1.Field("uint64")
+    src_1.Field("uint64"),
+    src_1.Encoding('E'),
+    src_1.Endian('BE'),
+    src_1.BigEndian
 ], ComplexStruct.prototype, "uint64", void 0);
 ComplexStruct = __decorate([
     src_1.Struct
 ], ComplexStruct);
 console.log("SizeOf(ComplexStruct)=", src_1.SizeOf(ComplexStruct));
+console.log(src_1.Dump(ComplexStruct));
+console.log(src_1.Dump(SimpleStruct));
 const struct = new ComplexStruct();
 const view = src_1.GetMetaData(struct, src_1.META.VIEW);
 Object.assign(struct.s1, {
@@ -89,9 +96,11 @@ console.log([...struct.s1.string]);
 const type = src_1.CreateStruct(ComplexStruct, null, 0);
 // const x:Readonly<Array<any>>=new Uint8Array();
 // @Struct
+// @SetOption()
 // class X{
 //     private view:DataView;
 //     private base:number;
 // }
 console.log(src_1.SizeOf("float32"));
+utils_1.RunCppTest("test", SimpleStruct, ComplexStruct);
 //# sourceMappingURL=test.js.map

@@ -5,6 +5,7 @@
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TypeBase = void 0;
+const consts_1 = require("./consts");
 const meta_1 = require("./meta");
 const utils_1 = require("./utils");
 class TypeBase {
@@ -20,11 +21,11 @@ class TypeBase {
                 view = new DataView(view, 0, view.byteLength);
             }
         }
-        meta_1.SetMetaData(this, meta_1.META.VIEW, view);
-        meta_1.SetMetaData(this, meta_1.META.BASE, base || 0);
+        meta_1.SetMetaData(this, consts_1.META.VIEW, view);
+        meta_1.SetMetaData(this, consts_1.META.BASE, base || 0);
     }
     static dump(ident, deep) {
-        const fields = meta_1.GetMetaData(this, meta_1.META.FIELD);
+        const fields = meta_1.GetMetaData(this, consts_1.META.FIELD);
         ident = ident || 2;
         deep = deep + ident;
         return `class ${this.name}{${Object.values(fields).map((field) => {

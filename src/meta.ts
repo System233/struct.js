@@ -4,6 +4,12 @@
 // https://opensource.org/licenses/MIT
 
 import { META } from "./consts";
-export { META } from "./consts";
-export const GetMetaData=<T>(target:object,meta:META):T=>Reflect.get(typeof target=="function"?target.prototype:target,meta);
-export const SetMetaData=<T>(target:object,meta:META,value:T)=>Reflect.set(typeof target=="function"?target.prototype:target,meta,value);
+const GetMetaTarget=(target:Object)=>typeof target=="function"?target.prototype:target;
+export const GetMetaData=<T>(target:object,meta:META,def?:T):T=>{
+    target=GetMetaTarget(target);
+    if(Reflect.has(target,meta)){
+        return Reflect.get(target,meta);
+    }
+    return def;
+}
+export const SetMetaData=<T>(target:object,meta:META,value:T)=>Reflect.set(GetMetaTarget(target),meta,value);

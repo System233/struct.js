@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { DefaultEndian, Endianness, NativeTypes, NativeTypeSize } from "./consts";
+import { DefaultEndian, Endianness, NativeType, NativeTypeSize } from "./consts";
 import { ReadAsString, WriteAsString } from "./string";
 import { NativeTypeDef } from "./utils";
 
@@ -16,14 +16,14 @@ export class ArrayProxy<T> extends Array<T>{
 
 }
 export class TypedArray<T extends number|BigInt> extends ArrayProxy<T> implements ITypedArray,ProxyHandler<Array<T>>{
-    static readonly type:NativeTypes;
+    static readonly type:NativeType;
     static get BYTES_PER_ELEMENT():number{return NativeTypeSize[this.type];};
     
     readonly view:DataView;
     readonly byteOffset: number;
     readonly endian:Endianness;
 
-    get type():NativeTypes{return (Object.getPrototypeOf(this).constructor).type;}
+    get type():NativeType{return (Object.getPrototypeOf(this).constructor).type;}
     get BYTES_PER_ELEMENT():number{return (Object.getPrototypeOf(this).constructor).BYTES_PER_ELEMENT;}
     get buffer():ArrayBufferLike{return this.view.buffer;}
     get byteLength():number{return this.BYTES_PER_ELEMENT*this.length;}
@@ -60,34 +60,34 @@ export class TypedArray<T extends number|BigInt> extends ArrayProxy<T> implement
     }
 }
 export class Int8ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="int8";
+    static type:NativeType="int8";
 }
 export class Uint8ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="uint8";
+    static type:NativeType="uint8";
 }
 export class Int16ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="int16";
+    static type:NativeType="int16";
 }
 export class Uint16ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes= "uint16";
+    static type:NativeType= "uint16";
 }
 export class Int32ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="int32";
+    static type:NativeType="int32";
 }
 export class Uint32ArrayProxy extends TypedArray<BigInt>{
-    static type:NativeTypes="uint32";
+    static type:NativeType="uint32";
 }
 export class BigInt64ArrayProxy extends TypedArray<BigInt>{
-    static type:NativeTypes="int64";
+    static type:NativeType="int64";
 }
 export class BigUint64ArrayProxy extends TypedArray<BigInt>{
-    static type:NativeTypes="uint64";
+    static type:NativeType="uint64";
 }
 export class Float32ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="float32";
+    static type:NativeType="float32";
 }
 export class Float64ArrayProxy extends TypedArray<number>{
-    static type:NativeTypes="float64";
+    static type:NativeType="float64";
 }
 
 export class StringArray extends ArrayProxy<string> implements ProxyHandler<StringArray>{

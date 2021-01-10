@@ -4,7 +4,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateStruct = exports.StructHandler = exports.AddField = void 0;
+exports.CreateStruct = exports.StructHandler = exports.InitStruct = exports.AddField = void 0;
 const arrays_1 = require("./arrays");
 const common_1 = require("./common");
 const consts_1 = require("./consts");
@@ -12,23 +12,42 @@ const meta_1 = require("./meta");
 const string_1 = require("./string");
 const utils_1 = require("./utils");
 exports.AddField = (target, field) => {
-    let { type, name, offset, size, shape, native, encoding } = field;
+    let { type, name, offset, size, shape, native, encoding, endian, aligned } = field;
     const len = shape == null ? 1 : shape.reduce((x, y) => x * y);
-    const base = utils_1.SizeOf(target);
-    size = size || utils_1.SizeOf(type) * len;
-    offset = offset || base;
-    const fields = meta_1.GetMetaData(target, consts_1.META.FIELD) || {};
-    fields[name] = {
+    const base = utils_1.SizeOf(target, true);
+    const option = meta_1.GetMetaData(target, consts_1.META.OPTION, {});
+    const align_type = utils_1.GetDefaultAlign(type);
+    const align_target = utils_1.NullOrDef(option.aligned, Math.max(meta_1.GetMetaData(target, consts_1.META.ALIGN, 1), align_type));
+    size = utils_1.NullOrDef(size, utils_1.SizeOf(type) * len);
+    encoding = utils_1.NullOrDef(encoding, option.encoding);
+    endian = utils_1.NullOrDef(endian, option.endian);
+    offset = utils_1.NullOrDef(offset, base);
+    if (!option.packed)
+        offset = utils_1.Aligns(offset, align_type);
+    const fields = meta_1.GetMetaData(target, consts_1.META.FIELD, new Map());
+    fields.set(name, {
         type,
         name,
         offset,
         size,
         shape,
         native,
-        encoding
-    };
-    meta_1.SetMetaData(target, consts_1.META.SIZE, Math.max(base, offset + size));
+        endian,
+        encoding,
+        aligned
+    });
+    const real = Math.max(base, offset + size);
+    meta_1.SetMetaData(target, consts_1.META.SIZE, utils_1.Aligns(real, align_target));
+    meta_1.SetMetaData(target, consts_1.META.REAL_SIZE, real);
+    meta_1.SetMetaData(target, consts_1.META.ALIGN, align_target);
     meta_1.SetMetaData(target, consts_1.META.FIELD, fields);
+};
+exports.InitStruct = (type) => {
+    if (!utils_1.IsTypeInited(type)) {
+        const fields = utils_1.GetTypeFields(type);
+        fields.forEach(field => exports.AddField(type, field));
+        utils_1.SetTypeInited(type, true);
+    }
 };
 class StructHandler {
     //2,3,4
@@ -48,7 +67,7 @@ class StructHandler {
             if (current == null) {
                 const offset = fieldBase + index * utils_1.SizeOf(type);
                 if (utils_1.IsNativeField(field)) {
-                    return utils_1.NativeTypeDef[field.type].get(view, offset, field.encoding);
+                    return utils_1.NativeTypeDef[field.type].get(view, offset, field.endian);
                 }
                 else if (utils_1.IsStringField(field)) { //shape==null
                     return string_1.ReadAsString(view.buffer, view.byteOffset + fieldBase, utils_1.SizeOf(type), field.encoding);
@@ -63,7 +82,7 @@ class StructHandler {
                     if (!native) {
                         const typed = arrays_1.ProxyTypeClassMap[field.type];
                         const offset = fieldBase + index * typed.BYTES_PER_ELEMENT;
-                        return new typed(view, offset, current, field.encoding);
+                        return new typed(view, offset, current, field.endian);
                     }
                     else {
                         const typed = consts_1.NativeTypeClassMap[field.type];
@@ -85,7 +104,7 @@ class StructHandler {
         return reads(size, 0, ...shape || []);
     }
     write(target, field, value) {
-        const { type, offset, name } = field;
+        const { offset, name } = field;
         const view = meta_1.GetMetaData(target, consts_1.META.VIEW);
         const targetBase = meta_1.GetMetaData(target, consts_1.META.BASE);
         const fieldBase = view.byteOffset + targetBase + offset;
@@ -115,10 +134,10 @@ class StructHandler {
     }
     get(target, p, receiver) {
         const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
-        if (p in fields) {
+        if (fields.has(p)) {
             let cache = target[p];
             if (cache == null) {
-                cache = this.read(target, fields[p]);
+                cache = this.read(target, fields.get(p));
                 if (typeof cache == "object")
                     target[p] = cache;
             }
@@ -129,10 +148,10 @@ class StructHandler {
     ;
     set(target, p, value, receiver) {
         const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
-        if (p in fields) {
+        if (fields.has(p)) {
             const cache = target[p];
             if (cache == null) {
-                return this.write(target, fields[p], value);
+                return this.write(target, fields.get(p), value);
             }
             return utils_1.DeepAssign(cache, value);
             // return Object.assign(cache,value);
@@ -142,8 +161,10 @@ class StructHandler {
     }
     ;
     static create(target, ...args) {
-        if (!(target instanceof common_1.TypeBase))
+        if (!(target instanceof common_1.TypeBase)) {
+            exports.InitStruct(target);
             target = new target(...args);
+        }
         return new Proxy(target, new StructHandler);
     }
 }

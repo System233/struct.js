@@ -3,10 +3,18 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { Endianness, META } from "./consts";
 import { Fields } from "./field";
-import { SetMetaData, META, GetMetaData } from "./meta";
+import { SetMetaData, GetMetaData } from "./meta";
 import { IsNativeField, SizeOf } from "./utils";
 
+export interface TypeDef{
+    aligned:number;
+    packed:boolean;
+    endian:Endianness;
+    encoding:string;
+}
+export type TypeOption=Partial<TypeDef>;
 
 export class TypeBase{
     private static __typeguard;

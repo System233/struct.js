@@ -3,36 +3,55 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
+import { type } from "os";
 import { ProxyTypeClassMap, StringArray } from "./arrays";
-import { TypeBase } from "./common";
-import { META, NativeTypeClassMap, NativeTypes, NativeTypeSize } from "./consts";
-import { FieldDef, FieldOption, Fields, FieldStringDef, FieldTypeDef} from "./field";
+import { TypeBase, TypeOption } from "./common";
+import { META, NativeTypeClassMap } from "./consts";
+import { FieldDef, FieldOption, Fields} from "./field";
 import { GetMetaData, SetMetaData } from "./meta";
 import { ReadAsString, WriteAsString } from "./string";
-import { DeepAssign, IsCustomField, IsCustomType, IsNativeField, IsNativeType, IsStringField, NativeTypeDef, SizeOf } from "./utils";
+import { Aligns, DeepAssign, GetDefaultAlign, GetTypeFields, IsCustomField, IsCustomType, IsNativeField, IsStringField, IsTypeInited, NativeTypeDef, NullOrDef, SetTypeFields, SetTypeInited, SizeOf } from "./utils";
 
 
 
-export const AddField=<T extends TypeBase>(target:T,field:FieldOption)=>{
-    let {type,name,offset,size,shape,native,encoding}=field;
+export const AddField=<T extends TypeBase>(target:T,field:FieldDef)=>{
+    let {type,name,offset,size,shape,native,encoding,endian,aligned}=field;
     const len=shape==null?1:shape.reduce((x,y)=>x*y);
-    const base=SizeOf(target);
-    size=size||SizeOf(type)*len;
-    offset=offset||base;
-    const fields= GetMetaData<Fields>(target,META.FIELD)||{};
-    fields[name as any]={
+    const base=SizeOf(target,true);
+    const option=GetMetaData<TypeOption>(target,META.OPTION,{});
+    const align_type=GetDefaultAlign(type);
+    const align_target=NullOrDef(option.aligned,Math.max(GetMetaData<number>(target,META.ALIGN,1),align_type));
+    size=NullOrDef(size,SizeOf(type)*len);
+    encoding=NullOrDef(encoding,option.encoding);
+    endian=NullOrDef(endian,option.endian);
+    offset=NullOrDef(offset,base);
+    if(!option.packed)
+        offset=Aligns(offset,align_type);
+    const fields= GetMetaData<Fields>(target,META.FIELD,new Map());
+    fields.set(name,{
         type,
         name,
         offset,
         size,
         shape,
         native,
-        encoding
-    };
-    SetMetaData<number>(target,META.SIZE,Math.max(base,offset+size));
+        endian,
+        encoding,
+        aligned
+    });
+    const real=Math.max(base,offset+size);
+    SetMetaData<number>(target,META.SIZE,Aligns(real,align_target));
+    SetMetaData<number>(target,META.REAL_SIZE,real);
+    SetMetaData<number>(target,META.ALIGN,align_target);
     SetMetaData<Fields>(target,META.FIELD,fields);
 }
-
+export const InitStruct=<T extends TypeBase>(type:T)=>{
+    if(!IsTypeInited(type)){
+        const fields=GetTypeFields(type);
+        fields.forEach(field=>AddField(type,field));
+        SetTypeInited(type,true);
+    }
+}
 
 export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
     //2,3,4
@@ -53,7 +72,7 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
             if(current==null){
                 const offset=fieldBase+index*SizeOf(type);
                 if(IsNativeField(field)){
-                    return NativeTypeDef[field.type].get(view,offset,field.encoding);
+                    return NativeTypeDef[field.type].get(view,offset,field.endian);
                 }else if(IsStringField(field)){//shape==null
                     return ReadAsString(view.buffer,view.byteOffset+fieldBase,SizeOf(type),field.encoding);
                 }else if(IsCustomType(type)){
@@ -65,7 +84,7 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
                     if(!native){
                         const typed=ProxyTypeClassMap[field.type];
                         const offset=fieldBase+index*typed.BYTES_PER_ELEMENT;
-                        return new typed(view,offset,current,field.encoding);
+                        return new typed(view,offset,current,field.endian);
                     }else{
                         const typed=NativeTypeClassMap[field.type];
                         const offset=fieldBase+index*typed.BYTES_PER_ELEMENT;
@@ -85,7 +104,7 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
         return reads(size,0,...shape||[]);
     }
     write(target:T,field:FieldDef,value:any):boolean{
-        const {type,offset,name}=field;
+        const {offset,name}=field;
         const view=GetMetaData<DataView>(target,META.VIEW);
         const targetBase=GetMetaData<number>(target,META.BASE);
         const fieldBase=view.byteOffset+targetBase+offset;
@@ -115,10 +134,10 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
     }
     get(target: T, p: PropertyKey, receiver: any): any{
         const fields=GetMetaData<Fields>(target,META.FIELD);
-        if(p in fields){
+        if(fields.has(p)){
             let cache=target[p];
             if(cache==null){
-                cache=this.read(target,fields[p as any]);
+                cache=this.read(target,fields.get(p));
                 if(typeof cache=="object")
                     target[p]=cache;
             }
@@ -128,10 +147,10 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
     };
     set(target: T, p: PropertyKey, value: any, receiver: any): boolean{
         const fields=GetMetaData<Fields>(target,META.FIELD);
-        if(p in fields){
+        if(fields.has(p)){
             const cache=target[p];
             if(cache==null){
-                return this.write(target,fields[p as any],value);
+                return this.write(target,fields.get(p),value);
             }
             return DeepAssign(cache,value);
             // return Object.assign(cache,value);
@@ -142,8 +161,11 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
     static create<T extends typeof TypeBase>(type:T,...args:ConstructorParameters<T>):InstanceType<T>;
     static create<T extends TypeBase>(target:T):T;
     static create(target:TypeBase|typeof TypeBase,...args:any[]){
-        if(!(target instanceof TypeBase))
+        
+        if(!(target instanceof TypeBase)){
+            InitStruct(target)
             target=new target(...args);
+        }
         return new Proxy(target,new StructHandler);
     }
 }
