@@ -55,6 +55,7 @@ export declare class StringArray extends ArrayProxy<string> implements ProxyHand
     private readonly byteLength;
     private readonly encoding?;
     constructor(buffer: ArrayBufferLike, byteOffset: number, byteLength: number, length: number, encoding?: string);
+    has(target: StringArray, p: PropertyKey): boolean;
     get(target: StringArray, prop: PropertyKey): any;
     set(target: StringArray, prop: PropertyKey, value: any): boolean;
 }

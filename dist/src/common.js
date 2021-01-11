@@ -7,8 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TypeBase = void 0;
 const consts_1 = require("./consts");
 const meta_1 = require("./meta");
+const types_1 = require("./types");
 const utils_1 = require("./utils");
 class TypeBase {
+    // private static __typeguard;
     constructor(view, base) {
         if (view == null) {
             view = new ArrayBuffer(utils_1.SizeOf(this));
@@ -24,16 +26,14 @@ class TypeBase {
         meta_1.SetMetaData(this, consts_1.META.VIEW, view);
         meta_1.SetMetaData(this, consts_1.META.BASE, base || 0);
     }
-    static dump(ident, deep) {
-        const fields = meta_1.GetMetaData(this, consts_1.META.FIELD);
-        ident = ident || 2;
-        deep = deep + ident;
-        return `class ${this.name}{${Object.values(fields).map((field) => {
-            if (utils_1.IsNativeField(field)) {
-                const { type, name, offset, encoding, native, shape } = field;
-                return `${type} ${name}${shape != null ? shape.map(d => `[${d}]`).join('') : ''};//offset=${field.offset},endian=${field.encoding},size=${field.size}`;
-            }
-        })}\n}`;
+    get buffer() {
+        return utils_1.GetBuffer(this);
+    }
+    static create(...args) {
+        return types_1.CreateStruct(this, ...args);
+    }
+    static dump() {
+        return utils_1.Dump(this);
     }
 }
 exports.TypeBase = TypeBase;

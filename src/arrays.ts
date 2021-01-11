@@ -100,6 +100,9 @@ export class StringArray extends ArrayProxy<string> implements ProxyHandler<Stri
         Object.freeze(this);
         return new Proxy(this,this);
     }
+    has(target: StringArray, p: PropertyKey): boolean{
+        return p in target;
+    }
     get(target:StringArray,prop:PropertyKey){
         if(typeof prop=="string"&&isFinite(+prop)||typeof prop=="number"){
             
@@ -114,6 +117,7 @@ export class StringArray extends ArrayProxy<string> implements ProxyHandler<Stri
         }
         return undefined;
     }
+    
     set(target:StringArray,prop:PropertyKey,value:any):boolean{
         if(typeof prop=="string"&&isFinite(+prop)||typeof prop=="number"){
             WriteAsString(

@@ -4,9 +4,9 @@
 // https://opensource.org/licenses/MIT
 
 import { Endianness, META } from "./consts";
-import { Fields } from "./field";
-import { SetMetaData, GetMetaData } from "./meta";
-import { IsNativeField, SizeOf } from "./utils";
+import { SetMetaData } from "./meta";
+import { CreateStruct } from "./types";
+import { Dump, GetBuffer, SizeOf } from "./utils";
 
 export interface TypeDef{
     aligned:number;
@@ -17,7 +17,7 @@ export interface TypeDef{
 export type TypeOption=Partial<TypeDef>;
 
 export class TypeBase{
-    private static __typeguard;
+    // private static __typeguard;
     constructor(view?:ArrayBufferView|ArrayBufferLike,base?:number){
         if(view==null){
             view=new ArrayBuffer(SizeOf(this));
@@ -34,17 +34,13 @@ export class TypeBase{
         SetMetaData(this,META.BASE,base||0);
 
     }
-    static dump(ident?:number,deep?:number){
-        const fields=GetMetaData<Fields>(this,META.FIELD);
-        ident=ident||2;
-        deep=deep+ident;
-        
-    return `class ${this.name}{${Object.values(fields).map((field)=>{
-        if(IsNativeField(field)){
-            const {type,name,offset,encoding,native,shape}=field;
-            return `${type} ${name as any}${shape!=null?shape.map(d=>`[${d}]`).join(''):''};//offset=${field.offset},endian=${field.encoding},size=${field.size}`
-        }
-    })}\n}`;
-
+    get buffer(){
+        return GetBuffer(this);
+    }
+    static create<T extends typeof TypeBase>(this:T,...args:ConstructorParameters<T>){
+        return CreateStruct(this,...args);
+    }
+    static dump(){
+        return Dump(this);
     }
 }

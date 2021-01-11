@@ -8,11 +8,13 @@
 
 ✔支持的基本类型:`string`,`int8`,`uint8`,`int16`,`uint16`,`int32`,`uint32`,`int64`,`uint64`,`float32`,`float64`
 
-❌尚不支持的类型: 无
+❌尚不支持的类型: bool
 
 ## 🚀示例
 
-[example.ts](test/example.ts)
+### TypeScript
+
+[example.ts](tests/example.ts)
 
 ```typescript
 import { Struct, TypeBase, Field, SizeOf, Dump } from "../src";
@@ -100,6 +102,49 @@ console.log(Dump(ComplexType))
 
 ```
 
+### JavaScript
+
+[example.js](tests/example.js)
+
+```javascript
+const { TypeBase, DefineFields } = require("struct");
+
+class Test extends TypeBase{
+
+    print(){
+        console.log('this.i8=',this.i8);
+    }
+}
+
+DefineFields(Test,
+    {
+        type:'string',
+        name:'str',
+        shape:[10],
+        encoding:'utf8'
+    },
+    {
+        type:'int8',
+        name:'i8'
+    },
+    {
+        type:"float32",
+        name:'f32'
+    }
+);
+console.log(Test.dump());
+const test=Test.create();
+test.print()
+test.i8=0xFF;
+test.print()
+
+console.log(test.buffer);
+```
+
+## 文档
+
+暂时没有文档，只能导入后按照字面意思理解。
+
 ## 📌TODO
 
 - [x] `string`类型支持
@@ -107,7 +152,7 @@ console.log(Dump(ComplexType))
 - [x] Byte-Aligned 字节对齐
 - [ ] Extends 继承类型
 - [ ] Union 联合类型
-- [ ] JavaScript API
+- [x] JavaScript API
 
 ## 🔑LICENSE
 

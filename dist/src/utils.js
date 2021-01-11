@@ -4,7 +4,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SetTypeInited = exports.IsTypeInited = exports.SetTypeFields = exports.GetTypeFields = exports.NullOrDef = exports.SetDefaultAlign = exports.GetDefaultAlign = exports.SetFieldDef = exports.GetFieldDef = exports.SetTypeDef = exports.GetTypeDef = exports.Aligns = exports.Dump = exports.DumpType = exports.DumpField = exports.TypeToCpp = exports.DeepAssign = exports.SizeOf = exports.IsStringField = exports.IsStringType = exports.IsCustomField = exports.IsCustomType = exports.IsNativeField = exports.IsNativeType = exports.NativeTypeDef = exports.GetNativeTypeDef = void 0;
+exports.GetBuffer = exports.SetTypeInited = exports.IsTypeInited = exports.SetTypeFields = exports.GetTypeFields = exports.NullOrDef = exports.SetDefaultAlign = exports.GetDefaultAlign = exports.SetFieldDef = exports.GetFieldDef = exports.SetTypeDef = exports.GetTypeDef = exports.Aligns = exports.Dump = exports.DumpType = exports.DumpField = exports.TypeToCpp = exports.DeepAssign = exports.SizeOf = exports.IsStringField = exports.IsStringType = exports.IsCustomField = exports.IsCustomTypeInstance = exports.IsCustomType = exports.IsNativeField = exports.IsNativeType = exports.NativeTypeDef = exports.GetNativeTypeDef = void 0;
 const common_1 = require("./common");
 const consts_1 = require("./consts");
 const meta_1 = require("./meta");
@@ -58,7 +58,10 @@ exports.IsNativeField = (field) => {
     return exports.IsNativeType(field.type);
 };
 exports.IsCustomType = (type) => {
-    return typeof type == "function" && type.prototype instanceof common_1.TypeBase;
+    return (typeof type == "function" && type.prototype instanceof common_1.TypeBase);
+};
+exports.IsCustomTypeInstance = (type) => {
+    return (type instanceof common_1.TypeBase);
 };
 exports.IsCustomField = (field) => {
     return exports.IsCustomType(field.type);
@@ -135,15 +138,13 @@ exports.DumpField = (field, deep) => {
     return null;
 };
 exports.DumpType = (type) => {
-    if (typeof type == "function")
-        type = type.prototype;
     const fields = exports.GetTypeFields(type);
     const size = exports.SizeOf(type);
     const align = meta_1.GetMetaData(type, consts_1.META.ALIGN);
-    return `struct ${type.constructor.name}{\t//${size}, align=${align}\n${Array.from(fields.values(), field => exports.DumpField(field, 1)).join('')}}__attribute__((aligned(${align})));`;
+    return `struct ${type.name}{\t//${size}, align=${align}\n${Array.from(fields.values(), field => exports.DumpField(field, 1)).join('')}}__attribute__((aligned(${align})));`;
 };
 exports.Dump = (type) => {
-    if (typeof type == "function" && type.prototype instanceof common_1.TypeBase || type instanceof common_1.TypeBase) {
+    if (exports.IsCustomType(type)) {
         return exports.DumpType(type);
     }
     return exports.DumpField(type, 0);
@@ -197,4 +198,12 @@ exports.GetTypeFields = (type) => meta_1.GetMetaData(type, consts_1.META.FIELD);
 exports.SetTypeFields = (type, fields) => meta_1.SetMetaData(type, consts_1.META.FIELD, fields);
 exports.IsTypeInited = (type) => meta_1.GetMetaData(type, consts_1.META.INITED, false);
 exports.SetTypeInited = (type, inited) => meta_1.SetMetaData(type, consts_1.META.INITED, inited);
+exports.GetBuffer = (target) => {
+    const view = meta_1.GetMetaData(target, consts_1.META.VIEW);
+    if (view != null) {
+        const base = meta_1.GetMetaData(target, consts_1.META.BASE);
+        return new Uint8Array(view.buffer, view.byteOffset + base, exports.SizeOf(target));
+    }
+    return null;
+};
 //# sourceMappingURL=utils.js.map

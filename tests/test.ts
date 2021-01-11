@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { Field, GetMetaData, META, SizeOf, Struct, TypeBase, CreateStruct, Aligned, SetOption, Encoding, BigEndian, Size, Offset, Endian, Dump } from "../src";
+import { Field, GetMetaData, META, SizeOf, Struct, TypeBase, CreateStruct, Aligned, SetOption, Encoding, BigEndian, Size, Offset, Endian, Dump, Packed } from "../src";
 import { RunCppTest } from "./utils";
 
 
@@ -84,7 +84,6 @@ const type=CreateStruct(ComplexStruct,null,0);
 
 // const x:Readonly<Array<any>>=new Uint8Array();
 // @Struct
-// @SetOption()
 // class X{
 //     private view:DataView;
 //     private base:number;

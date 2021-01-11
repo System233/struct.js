@@ -4,7 +4,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreateStruct = exports.StructHandler = exports.InitStruct = exports.AddField = void 0;
+exports.DefineFields = exports.CreateStruct = exports.StructHandler = exports.InitStruct = exports.AddField = void 0;
 const arrays_1 = require("./arrays");
 const common_1 = require("./common");
 const consts_1 = require("./consts");
@@ -132,6 +132,13 @@ class StructHandler {
         }
         return false;
     }
+    has(target, p) {
+        const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
+        if (fields && fields.has(p)) {
+            return true;
+        }
+        return p in target;
+    }
     get(target, p, receiver) {
         const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
         if (fields.has(p)) {
@@ -171,5 +178,9 @@ class StructHandler {
 exports.StructHandler = StructHandler;
 exports.CreateStruct = (target, ...args) => {
     return StructHandler.create(target, ...args);
+};
+exports.DefineFields = (type, ...fields) => {
+    fields.flat().forEach(field => exports.AddField(type, field));
+    return type;
 };
 //# sourceMappingURL=types.js.map

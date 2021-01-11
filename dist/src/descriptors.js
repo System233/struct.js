@@ -4,7 +4,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Struct = exports.LittleEndian = exports.BigEndian = exports.Length = exports.Shape = exports.Size = exports.Native = exports.Offset = exports.Endian = exports.Encoding = exports.Aligned = exports.SetOption = exports.Field = void 0;
+exports.Struct = exports.LittleEndian = exports.BigEndian = exports.Length = exports.Shape = exports.Size = exports.Offset = exports.Endian = exports.Encoding = exports.Aligned = exports.Native = exports.Packed = exports.SetOption = exports.Field = void 0;
 const types_1 = require("./types");
 const utils_1 = require("./utils");
 exports.Field = (type, option) => {
@@ -16,19 +16,32 @@ exports.Field = (type, option) => {
 };
 exports.SetOption = (option) => {
     return ((target, propertyKey) => {
-        if (propertyKey != null) {
+        if (utils_1.IsCustomTypeInstance(target)) {
             utils_1.SetFieldDef(target, propertyKey, option);
         }
-        else {
+        else if (utils_1.IsCustomType(target)) {
             utils_1.SetTypeDef(target, option);
         }
     });
 };
+const SetOption2 = (target, propertyKey, name, def) => {
+    if (utils_1.IsCustomType(target)) {
+        utils_1.SetTypeDef(target, { [name]: def });
+    }
+    else if (utils_1.IsCustomTypeInstance(target)) {
+        utils_1.SetFieldDef(target, propertyKey, { [name]: def });
+    }
+    else {
+        return exports.SetOption({ [name]: target });
+    }
+};
+exports.Packed = (target, propertyKey) => SetOption2(target, propertyKey, "packed", true);
+exports.Native = (target, propertyKey) => SetOption2(target, propertyKey, "native", true);
 exports.Aligned = (aligned) => exports.SetOption({ aligned });
 exports.Encoding = (encoding) => exports.SetOption({ encoding });
 exports.Endian = (endian) => exports.SetOption({ endian });
 exports.Offset = (offset) => exports.SetOption({ offset });
-exports.Native = (native) => exports.SetOption({ native });
+// export const Native=(native:boolean)=>SetOption({native});
 exports.Size = (size) => exports.SetOption({ size });
 exports.Shape = (...shape) => exports.SetOption({ shape });
 exports.Length = exports.Shape;

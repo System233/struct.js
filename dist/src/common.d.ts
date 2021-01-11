@@ -7,8 +7,9 @@ export interface TypeDef {
 }
 export declare type TypeOption = Partial<TypeDef>;
 export declare class TypeBase {
-    private static __typeguard;
     constructor(view?: ArrayBufferView | ArrayBufferLike, base?: number);
-    static dump(ident?: number, deep?: number): string;
+    get buffer(): Uint8Array;
+    static create<T extends typeof TypeBase>(this: T, ...args: ConstructorParameters<T>): InstanceType<T>;
+    static dump(): string;
 }
 //# sourceMappingURL=common.d.ts.map

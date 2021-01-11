@@ -10,11 +10,11 @@ import { META, NativeTypeClassMap } from "./consts";
 import { FieldDef, FieldOption, Fields} from "./field";
 import { GetMetaData, SetMetaData } from "./meta";
 import { ReadAsString, WriteAsString } from "./string";
-import { Aligns, DeepAssign, GetDefaultAlign, GetTypeFields, IsCustomField, IsCustomType, IsNativeField, IsStringField, IsTypeInited, NativeTypeDef, NullOrDef, SetTypeFields, SetTypeInited, SizeOf } from "./utils";
+import { Aligns, DeepAssign, GetDefaultAlign, GetTypeFields, IsCustomField, IsCustomType, IsNativeField, IsStringField, IsTypeInited, NativeTypeDef, NullOrDef, SetTypeInited, SizeOf } from "./utils";
 
 
 
-export const AddField=<T extends TypeBase>(target:T,field:FieldDef)=>{
+export const AddField=<T extends typeof TypeBase>(target:T,field:FieldDef)=>{
     let {type,name,offset,size,shape,native,encoding,endian,aligned}=field;
     const len=shape==null?1:shape.reduce((x,y)=>x*y);
     const base=SizeOf(target,true);
@@ -45,7 +45,7 @@ export const AddField=<T extends TypeBase>(target:T,field:FieldDef)=>{
     SetMetaData<number>(target,META.ALIGN,align_target);
     SetMetaData<Fields>(target,META.FIELD,fields);
 }
-export const InitStruct=<T extends TypeBase>(type:T)=>{
+export const InitStruct=<T extends typeof TypeBase>(type:T)=>{
     if(!IsTypeInited(type)){
         const fields=GetTypeFields(type);
         fields.forEach(field=>AddField(type,field));
@@ -132,6 +132,13 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
         }
         return false;
     }
+    has(target: T, p: PropertyKey): boolean{
+        const fields=GetMetaData<Fields>(target,META.FIELD);
+        if(fields&&fields.has(p)){
+            return true;
+        }
+        return p in target;
+    }
     get(target: T, p: PropertyKey, receiver: any): any{
         const fields=GetMetaData<Fields>(target,META.FIELD);
         if(fields.has(p)){
@@ -171,8 +178,12 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
 }
 
 export const CreateStruct:{
-    <T extends TypeBase>(target:T):T,
     <T extends typeof TypeBase>(type:T,...args:ConstructorParameters<T>):InstanceType<T>,
+    <T extends TypeBase>(target:T):T,
 }=(target:any,...args:any[])=>{
     return StructHandler.create(target,...args);
+}
+export const DefineFields=<T extends typeof TypeBase>(type:T,...fields:(FieldOption&{type:FieldDef["type"],name:FieldDef["name"]})[]):T=>{
+    fields.flat().forEach(field=>AddField(type,field as FieldDef));
+    return type;
 }

@@ -25,6 +25,7 @@ export interface FieldStringDef extends Partial<FieldDef> {
     type?: "string";
     encoding?: string;
     endian?: never;
+    native?: never;
 }
 export declare type FieldOption = FieldTypeDef | FieldNativeDef | FieldStringDef;
 export declare type FiledType = NativeType | typeof TypeBase | StringType;

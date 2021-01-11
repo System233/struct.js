@@ -102,6 +102,9 @@ class StringArray extends ArrayProxy {
         Object.freeze(this);
         return new Proxy(this, this);
     }
+    has(target, p) {
+        return p in target;
+    }
     get(target, prop) {
         if (typeof prop == "string" && isFinite(+prop) || typeof prop == "number") {
             return string_1.ReadAsString(this.buffer, this.byteOffset + (+prop) * this.byteLength, this.byteLength, this.encoding);

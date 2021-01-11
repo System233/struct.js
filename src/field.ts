@@ -36,6 +36,7 @@ export interface FieldStringDef extends Partial<FieldDef>{
     type?:"string",
     encoding?:string;
     endian?:never;
+    native?:never;
 }
 
 export type FieldOption=FieldTypeDef|FieldNativeDef|FieldStringDef;
