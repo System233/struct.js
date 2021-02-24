@@ -22,7 +22,6 @@ const AddField = (target, field) => {
     encoding = utils_1.NullOrDef(encoding, option.encoding);
     endian = utils_1.NullOrDef(endian, option.endian);
     offset = utils_1.NullOrDef(offset, base);
-    console.log(type, offset, align_type);
     if (!option.packed)
         offset = utils_1.Aligns(offset, align_type);
     const fields = meta_1.GetMetaData(target, consts_1.META.FIELD, new Map());

@@ -25,7 +25,6 @@ export const AddField=<T extends typeof TypeBase>(target:T,field:FieldDef)=>{
     encoding=NullOrDef(encoding,option.encoding);
     endian=NullOrDef(endian,option.endian);
     offset=NullOrDef(offset,base);
-    console.log(type,offset,align_type)
     if(!option.packed)
         offset=Aligns(offset,align_type);
     const fields= GetMetaData<Fields>(target,META.FIELD,new Map());
