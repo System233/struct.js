@@ -180,7 +180,7 @@ export const SetFieldDef=<T extends TypeBase>(target:T,name:PropertyKey,option:F
 export const GetDefaultAlign=(type:typeof TypeBase|NativeType|StringType):number=>{
     if(IsCustomType(type)){
         const {aligned: align}=GetMetaData<TypeOption>(type,META.OPTION,{});
-        return NullOrDef(align,1);
+        return NullOrDef(align,GetMetaData<number>(type,META.ALIGN),1);
     }else{
         return SizeOf(type);
     }

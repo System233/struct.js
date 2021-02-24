@@ -196,7 +196,7 @@ exports.SetFieldDef = SetFieldDef;
 const GetDefaultAlign = (type) => {
     if (exports.IsCustomType(type)) {
         const { aligned: align } = meta_1.GetMetaData(type, consts_1.META.OPTION, {});
-        return exports.NullOrDef(align, 1);
+        return exports.NullOrDef(align, meta_1.GetMetaData(type, consts_1.META.ALIGN), 1);
     }
     else {
         return exports.SizeOf(type);
