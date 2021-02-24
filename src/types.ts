@@ -119,9 +119,9 @@ export class StructHandler<T extends TypeBase> implements ProxyHandler<T>{
                 DeepAssign(array,value);
             }
             else if(field.shape.length){
-                WriteAsString(view.buffer,view.byteOffset+offset,field.shape[0],field.encoding,value);
+                WriteAsString(view.buffer,fieldBase,field.shape[0],field.encoding,value);
             }else{
-                WriteAsString(view.buffer,view.byteOffset+offset,1,field.encoding,value);
+                WriteAsString(view.buffer,fieldBase,1,field.encoding,value);
             }
             return true;
         }

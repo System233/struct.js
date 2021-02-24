@@ -7,14 +7,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Struct = exports.LittleEndian = exports.BigEndian = exports.Length = exports.Shape = exports.Size = exports.Offset = exports.Endian = exports.Encoding = exports.Aligned = exports.Native = exports.Packed = exports.SetOption = exports.Field = void 0;
 const types_1 = require("./types");
 const utils_1 = require("./utils");
-exports.Field = (type, option) => {
+const Field = (type, option) => {
     return (target, propertyKey) => utils_1.SetFieldDef(target, propertyKey, {
         name: propertyKey,
         type,
         ...option || {}
     });
 };
-exports.SetOption = (option) => {
+exports.Field = Field;
+const SetOption = (option) => {
     return ((target, propertyKey) => {
         if (utils_1.IsCustomTypeInstance(target)) {
             utils_1.SetFieldDef(target, propertyKey, option);
@@ -24,6 +25,7 @@ exports.SetOption = (option) => {
         }
     });
 };
+exports.SetOption = SetOption;
 const SetOption2 = (target, propertyKey, name, def) => {
     if (utils_1.IsCustomType(target)) {
         utils_1.SetTypeDef(target, { [name]: def });
@@ -35,19 +37,29 @@ const SetOption2 = (target, propertyKey, name, def) => {
         return exports.SetOption({ [name]: target });
     }
 };
-exports.Packed = (target, propertyKey) => SetOption2(target, propertyKey, "packed", true);
-exports.Native = (target, propertyKey) => SetOption2(target, propertyKey, "native", true);
-exports.Aligned = (aligned) => exports.SetOption({ aligned });
-exports.Encoding = (encoding) => exports.SetOption({ encoding });
-exports.Endian = (endian) => exports.SetOption({ endian });
-exports.Offset = (offset) => exports.SetOption({ offset });
+const Packed = (target, propertyKey) => SetOption2(target, propertyKey, "packed", true);
+exports.Packed = Packed;
+const Native = (target, propertyKey) => SetOption2(target, propertyKey, "native", true);
+exports.Native = Native;
+const Aligned = (aligned) => exports.SetOption({ aligned });
+exports.Aligned = Aligned;
+const Encoding = (encoding) => exports.SetOption({ encoding });
+exports.Encoding = Encoding;
+const Endian = (endian) => exports.SetOption({ endian });
+exports.Endian = Endian;
+const Offset = (offset) => exports.SetOption({ offset });
+exports.Offset = Offset;
 // export const Native=(native:boolean)=>SetOption({native});
-exports.Size = (size) => exports.SetOption({ size });
-exports.Shape = (...shape) => exports.SetOption({ shape });
+const Size = (size) => exports.SetOption({ size });
+exports.Size = Size;
+const Shape = (...shape) => exports.SetOption({ shape });
+exports.Shape = Shape;
 exports.Length = exports.Shape;
-exports.BigEndian = (target, propertyKey) => utils_1.SetFieldDef(target, propertyKey, { encoding: 'BE' });
-exports.LittleEndian = (target, propertyKey) => utils_1.SetFieldDef(target, propertyKey, { encoding: 'LE' });
-exports.Struct = (constructor, type) => {
+const BigEndian = (target, propertyKey) => utils_1.SetFieldDef(target, propertyKey, { encoding: 'BE' });
+exports.BigEndian = BigEndian;
+const LittleEndian = (target, propertyKey) => utils_1.SetFieldDef(target, propertyKey, { encoding: 'LE' });
+exports.LittleEndian = LittleEndian;
+const Struct = (constructor, type) => {
     if (utils_1.IsCustomType(constructor)) {
         return ((type) => {
             types_1.InitStruct(type);
@@ -65,4 +77,5 @@ exports.Struct = (constructor, type) => {
         return (target) => exports.Struct(target, type);
     }
 };
+exports.Struct = Struct;
 //# sourceMappingURL=descriptors.js.map

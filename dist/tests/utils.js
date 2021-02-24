@@ -16,7 +16,7 @@ const cppTemplate = `
 #define TESTx(type,member,offset,size) PRINT(type,member);\\
                             //assert(offsetof(type,member)==offset);\\
                             //assert(sizeof(type::member)==size);`;
-exports.GenCppMain = (...types) => {
+const GenCppMain = (...types) => {
     return [
         'int main(){',
         types.map(type => Array.from(src_1.GetTypeFields(type).values(), field => `TEST(${type.name},${field.name},${field.offset},${field.size});`).join('\n')).join('\n'),
@@ -24,19 +24,23 @@ exports.GenCppMain = (...types) => {
         '}'
     ].join('\n');
 };
-exports.GenCppTest = (...types) => {
+exports.GenCppMain = GenCppMain;
+const GenCppTest = (...types) => {
     return [
         cppTemplate,
         ...types.map(src_1.Dump),
         exports.GenCppMain(...types)
     ].join('\n');
 };
-exports.GetGccPath = () => path_1.join(consts_1.GCC_PATH, "g++");
-exports.RunCppTest = (name, ...types) => {
+exports.GenCppTest = GenCppTest;
+const GetGccPath = () => path_1.join(consts_1.GCC_PATH, "g++");
+exports.GetGccPath = GetGccPath;
+const RunCppTest = (name, ...types) => {
     const cpp = exports.GenCppTest(...types);
     const cwd = path_1.join(__dirname, 'temp');
     if (!fs_1.existsSync(cwd))
         fs_1.mkdirSync(cwd);
     child_process_1.execSync(exports.GetGccPath() + " -xc++ -&&a", { cwd, input: cpp });
 };
+exports.RunCppTest = RunCppTest;
 //# sourceMappingURL=utils.js.map

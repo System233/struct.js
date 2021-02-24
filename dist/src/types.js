@@ -11,7 +11,7 @@ const consts_1 = require("./consts");
 const meta_1 = require("./meta");
 const string_1 = require("./string");
 const utils_1 = require("./utils");
-exports.AddField = (target, field) => {
+const AddField = (target, field) => {
     let { type, name, offset, size, shape, native, encoding, endian, aligned } = field;
     const len = shape == null ? 1 : shape.reduce((x, y) => x * y);
     const base = utils_1.SizeOf(target, true);
@@ -42,13 +42,15 @@ exports.AddField = (target, field) => {
     meta_1.SetMetaData(target, consts_1.META.ALIGN, align_target);
     meta_1.SetMetaData(target, consts_1.META.FIELD, fields);
 };
-exports.InitStruct = (type) => {
+exports.AddField = AddField;
+const InitStruct = (type) => {
     if (!utils_1.IsTypeInited(type)) {
         const fields = utils_1.GetTypeFields(type);
         fields.forEach(field => exports.AddField(type, field));
         utils_1.SetTypeInited(type, true);
     }
 };
+exports.InitStruct = InitStruct;
 class StructHandler {
     //2,3,4
     //[0][0]->0
@@ -118,10 +120,10 @@ class StructHandler {
                 utils_1.DeepAssign(array, value);
             }
             else if (field.shape.length) {
-                string_1.WriteAsString(view.buffer, view.byteOffset + offset, field.shape[0], field.encoding, value);
+                string_1.WriteAsString(view.buffer, fieldBase, field.shape[0], field.encoding, value);
             }
             else {
-                string_1.WriteAsString(view.buffer, view.byteOffset + offset, 1, field.encoding, value);
+                string_1.WriteAsString(view.buffer, fieldBase, 1, field.encoding, value);
             }
             return true;
         }
@@ -176,11 +178,13 @@ class StructHandler {
     }
 }
 exports.StructHandler = StructHandler;
-exports.CreateStruct = (target, ...args) => {
+const CreateStruct = (target, ...args) => {
     return StructHandler.create(target, ...args);
 };
-exports.DefineFields = (type, ...fields) => {
+exports.CreateStruct = CreateStruct;
+const DefineFields = (type, ...fields) => {
     fields.flat().forEach(field => exports.AddField(type, field));
     return type;
 };
+exports.DefineFields = DefineFields;
 //# sourceMappingURL=types.js.map

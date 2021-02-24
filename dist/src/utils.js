@@ -51,28 +51,35 @@ exports.NativeTypeDef = {
     float32: GetNativeTypeDef('float32'),
     float64: GetNativeTypeDef('float64'),
 };
-exports.IsNativeType = (type) => {
+const IsNativeType = (type) => {
     return type in NativeTypeNameMap;
 };
-exports.IsNativeField = (field) => {
+exports.IsNativeType = IsNativeType;
+const IsNativeField = (field) => {
     return exports.IsNativeType(field.type);
 };
-exports.IsCustomType = (type) => {
+exports.IsNativeField = IsNativeField;
+const IsCustomType = (type) => {
     return (typeof type == "function" && type.prototype instanceof common_1.TypeBase);
 };
-exports.IsCustomTypeInstance = (type) => {
+exports.IsCustomType = IsCustomType;
+const IsCustomTypeInstance = (type) => {
     return (type instanceof common_1.TypeBase);
 };
-exports.IsCustomField = (field) => {
+exports.IsCustomTypeInstance = IsCustomTypeInstance;
+const IsCustomField = (field) => {
     return exports.IsCustomType(field.type);
 };
-exports.IsStringType = (type) => {
+exports.IsCustomField = IsCustomField;
+const IsStringType = (type) => {
     return type == "string";
 };
-exports.IsStringField = (field) => {
+exports.IsStringType = IsStringType;
+const IsStringField = (field) => {
     return exports.IsStringType(field.type);
 };
-exports.SizeOf = (type, real) => {
+exports.IsStringField = IsStringField;
+const SizeOf = (type, real) => {
     if (exports.IsCustomType(type)) {
         return exports.SizeOf(type.prototype, real);
     }
@@ -87,7 +94,8 @@ exports.SizeOf = (type, real) => {
     }
     return undefined;
 };
-exports.DeepAssign = (target, ...args) => {
+exports.SizeOf = SizeOf;
+const DeepAssign = (target, ...args) => {
     args.filter(x => x != null).forEach(form => {
         Object.entries(form).forEach(([key, val]) => {
             if (key in target) {
@@ -106,7 +114,8 @@ exports.DeepAssign = (target, ...args) => {
     });
     return target;
 };
-exports.TypeToCpp = (type) => {
+exports.DeepAssign = DeepAssign;
+const TypeToCpp = (type) => {
     if (exports.IsCustomType(type))
         return type.name;
     if (exports.IsNativeType(type))
@@ -115,7 +124,8 @@ exports.TypeToCpp = (type) => {
         return 'char';
     return null;
 };
-exports.DumpField = (field, deep) => {
+exports.TypeToCpp = TypeToCpp;
+const DumpField = (field, deep) => {
     deep = deep || 0;
     const dumpShape = (shape) => shape ? shape.map(x => `[${x}]`).join('') : '';
     const dumpInfo = () => {
@@ -137,35 +147,42 @@ exports.DumpField = (field, deep) => {
     }
     return null;
 };
-exports.DumpType = (type) => {
+exports.DumpField = DumpField;
+const DumpType = (type) => {
     const fields = exports.GetTypeFields(type);
     const size = exports.SizeOf(type);
     const align = meta_1.GetMetaData(type, consts_1.META.ALIGN);
     return `struct ${type.name}{\t//${size}, align=${align}\n${Array.from(fields.values(), field => exports.DumpField(field, 1)).join('')}}__attribute__((aligned(${align})));`;
 };
-exports.Dump = (type) => {
+exports.DumpType = DumpType;
+const Dump = (type) => {
     if (exports.IsCustomType(type)) {
         return exports.DumpType(type);
     }
     return exports.DumpField(type, 0);
 };
+exports.Dump = Dump;
 //1,4->4
 //2,4->4
 //5,4->8
-exports.Aligns = (addr, align) => (addr + align - 1) & (~(align - 1));
-exports.GetTypeDef = (target) => meta_1.GetMetaData(target, consts_1.META.OPTION);
-exports.SetTypeDef = (target, option) => {
+const Aligns = (addr, align) => (addr + align - 1) & (~(align - 1));
+exports.Aligns = Aligns;
+const GetTypeDef = (target) => meta_1.GetMetaData(target, consts_1.META.OPTION);
+exports.GetTypeDef = GetTypeDef;
+const SetTypeDef = (target, option) => {
     const value = meta_1.GetMetaData(target, consts_1.META.OPTION, {});
     Object.assign(value, option);
     meta_1.SetMetaData(target, consts_1.META.OPTION, value);
 };
-exports.GetFieldDef = (target, name) => {
+exports.SetTypeDef = SetTypeDef;
+const GetFieldDef = (target, name) => {
     const fields = meta_1.GetMetaData(target, consts_1.META.FIELD);
     if (fields && fields.has(name))
         return fields.get(name);
     return null;
 };
-exports.SetFieldDef = (target, name, option) => {
+exports.GetFieldDef = GetFieldDef;
+const SetFieldDef = (target, name, option) => {
     const fields = meta_1.GetMetaData(target, consts_1.META.FIELD, new Map);
     if (fields.has(name)) {
         Object.assign(fields.get(name), option);
@@ -175,7 +192,8 @@ exports.SetFieldDef = (target, name, option) => {
         meta_1.SetMetaData(target, consts_1.META.FIELD, fields);
     }
 };
-exports.GetDefaultAlign = (type) => {
+exports.SetFieldDef = SetFieldDef;
+const GetDefaultAlign = (type) => {
     if (exports.IsCustomType(type)) {
         const { aligned: align } = meta_1.GetMetaData(type, consts_1.META.OPTION, {});
         return exports.NullOrDef(align, 1);
@@ -184,7 +202,8 @@ exports.GetDefaultAlign = (type) => {
         return exports.SizeOf(type);
     }
 };
-exports.SetDefaultAlign = (type, align) => {
+exports.GetDefaultAlign = GetDefaultAlign;
+const SetDefaultAlign = (type, align) => {
     if (exports.IsCustomType(type)) {
         const option = meta_1.GetMetaData(type, consts_1.META.OPTION, {});
         option.aligned = align;
@@ -193,12 +212,18 @@ exports.SetDefaultAlign = (type, align) => {
     }
     return false;
 };
-exports.NullOrDef = (...items) => items.find(x => x != null);
-exports.GetTypeFields = (type) => meta_1.GetMetaData(type, consts_1.META.FIELD);
-exports.SetTypeFields = (type, fields) => meta_1.SetMetaData(type, consts_1.META.FIELD, fields);
-exports.IsTypeInited = (type) => meta_1.GetMetaData(type, consts_1.META.INITED, false);
-exports.SetTypeInited = (type, inited) => meta_1.SetMetaData(type, consts_1.META.INITED, inited);
-exports.GetBuffer = (target) => {
+exports.SetDefaultAlign = SetDefaultAlign;
+const NullOrDef = (...items) => items.find(x => x != null);
+exports.NullOrDef = NullOrDef;
+const GetTypeFields = (type) => meta_1.GetMetaData(type, consts_1.META.FIELD);
+exports.GetTypeFields = GetTypeFields;
+const SetTypeFields = (type, fields) => meta_1.SetMetaData(type, consts_1.META.FIELD, fields);
+exports.SetTypeFields = SetTypeFields;
+const IsTypeInited = (type) => meta_1.GetMetaData(type, consts_1.META.INITED, false);
+exports.IsTypeInited = IsTypeInited;
+const SetTypeInited = (type, inited) => meta_1.SetMetaData(type, consts_1.META.INITED, inited);
+exports.SetTypeInited = SetTypeInited;
+const GetBuffer = (target) => {
     const view = meta_1.GetMetaData(target, consts_1.META.VIEW);
     if (view != null) {
         const base = meta_1.GetMetaData(target, consts_1.META.BASE);
@@ -206,4 +231,5 @@ exports.GetBuffer = (target) => {
     }
     return null;
 };
+exports.GetBuffer = GetBuffer;
 //# sourceMappingURL=utils.js.map

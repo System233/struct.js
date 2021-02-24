@@ -6,12 +6,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SetMetaData = exports.GetMetaData = void 0;
 const GetMetaTarget = (target) => typeof target == "function" ? target.prototype : target;
-exports.GetMetaData = (target, meta, def) => {
+const GetMetaData = (target, meta, def) => {
     target = GetMetaTarget(target);
     if (Reflect.has(target, meta)) {
         return Reflect.get(target, meta);
     }
     return def;
 };
-exports.SetMetaData = (target, meta, value) => Reflect.set(GetMetaTarget(target), meta, value);
+exports.GetMetaData = GetMetaData;
+const SetMetaData = (target, meta, value) => Reflect.set(GetMetaTarget(target), meta, value);
+exports.SetMetaData = SetMetaData;
 //# sourceMappingURL=meta.js.map
